@@ -142,6 +142,12 @@ function clasificarClientes(datosA, datosB){
 // Arma la proyección estilo cash flow para UN archivo: agrupa por fecha de vencimiento
 // (solo importes positivos = deuda pendiente) y calcula los buckets de días. Excluye
 // difícil cobro del total normal y neteA "a aplicar" solo para clientes con deuda real.
+// Buckets de días MUTUAMENTE EXCLUYENTES (cada comprobante cae en uno solo):
+//   Vencido        → dias <= 0  (incluye lo que vence hoy)
+//   Próx. 7 días   → 1 a 7 días
+//   De 7 a 15 días → 8 a 15 días
+//   Más de 15 días → 16+ días
+// Vencido + Próx.7 + De7a15 + Más15 = deuda bruta total (antes de netear "a aplicar").
 function buildProyeccion(datos, key, porCliente){
   const porFecha = {};
   let dificilCobro = 0, vencido = 0, d7 = 0, d15 = 0, dMas = 0;
@@ -152,8 +158,8 @@ function buildProyeccion(datos, key, porCliente){
     if (esDificilCobro(d.cliente)) { if (d.importe > 0) dificilCobro += d.importe; return; }
     if (d.importe > 0) {
       const dias = calcularDias(d.vencimiento);
-      if (dias < 0) vencido += d.importe;
-      if (dias <= 7) d7 += d.importe;        // incluye vencido: es lo más urgente a cobrar
+      if (dias <= 0) vencido += d.importe;
+      else if (dias <= 7) d7 += d.importe;
       else if (dias <= 15) d15 += d.importe;
       else dMas += d.importe;
       porFecha[d.vencimiento] = (porFecha[d.vencimiento] || 0) + d.importe;
@@ -175,8 +181,8 @@ function buildProyeccion(datos, key, porCliente){
 function renderPanel(tag, datos, key, porCliente){
   const p = buildProyeccion(datos, key, porCliente);
   document.getElementById(`kpi${tag}-total`).textContent = fm(p.totalCobrar);
-  document.getElementById(`kpi${tag}-vencido`).textContent = p.vencido > 0 ? `de los cuales ${fm(p.vencido)} vencido` : '';
-  document.getElementById(`kpi${tag}-dc`).textContent = p.dificilCobro > 0 ? `+ ${fm(p.dificilCobro)} en difícil cobro (no incluido)` : '';
+  document.getElementById(`kpi${tag}-vencido`).textContent = fm(p.vencido);
+  document.getElementById(`kpi${tag}-dc`).textContent = fm(p.dificilCobro);
   document.getElementById(`kpi${tag}-d7`).textContent = fm(p.d7);
   document.getElementById(`kpi${tag}-d15`).textContent = fm(p.d15);
   document.getElementById(`kpi${tag}-d15plus`).textContent = fm(p.dMas);
