@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trade Food · Cuentas a Cobrar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="loading-bar"></div>
+
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-title">Cuentas a Cobrar Proyectadas</div>
+      <div class="header-sub" id="fecha-carga">Cargando…</div>
+    </div>
+    <button class="btn-refresh" id="btn-refresh" onclick="loadAllData()">↺ Actualizar</button>
+  </div>
+
+  <div id="upload-messages"></div>
+
+  <!-- ARCHIVO A -->
+  <div class="co-section">
+    <div class="co-header">ARCHIVO A · Cuentas a Cobrar</div>
+    <div class="kpi-block">
+      <div class="kpi-row">
+        <div class="kpi" style="background:var(--tf-light)"><div class="kpi-label" style="color:var(--tf-primary);font-weight:700">Total a cobrar</div><div class="kpi-value" id="kpiA-total">—</div><div class="kpi-sub" id="kpiA-vencido"></div><div class="kpi-sub" id="kpiA-dc" style="color:#8a6800"></div></div>
+        <div class="kpi"><div class="kpi-label">Próx. 7 días</div><div class="kpi-value" id="kpiA-d7">—</div></div>
+        <div class="kpi"><div class="kpi-label">De 7 a 15 días</div><div class="kpi-value" id="kpiA-d15">—</div></div>
+        <div class="kpi"><div class="kpi-label">Más de 15 días</div><div class="kpi-value" id="kpiA-d15plus">—</div></div>
+      </div>
+    </div>
+    <div class="cf-table-wrap"><table>
+      <thead class="thead-tf"><tr>
+        <th style="text-align:left;min-width:120px">Fecha</th>
+        <th>Cuenta a cobrar</th>
+      </tr></thead>
+      <tbody id="tbody-A"><tr><td colspan="2" class="no-data">Cargando datos...</td></tr></tbody>
+    </table></div>
+  </div>
+
+  <!-- ARCHIVO B -->
+  <div class="co-section">
+    <div class="co-header">ARCHIVO B · Cuentas a Cobrar</div>
+    <div class="kpi-block">
+      <div class="kpi-row">
+        <div class="kpi" style="background:var(--tf-light)"><div class="kpi-label" style="color:var(--tf-primary);font-weight:700">Total a cobrar</div><div class="kpi-value" id="kpiB-total">—</div><div class="kpi-sub" id="kpiB-vencido"></div><div class="kpi-sub" id="kpiB-dc" style="color:#8a6800"></div></div>
+        <div class="kpi"><div class="kpi-label">Próx. 7 días</div><div class="kpi-value" id="kpiB-d7">—</div></div>
+        <div class="kpi"><div class="kpi-label">De 7 a 15 días</div><div class="kpi-value" id="kpiB-d15">—</div></div>
+        <div class="kpi"><div class="kpi-label">Más de 15 días</div><div class="kpi-value" id="kpiB-d15plus">—</div></div>
+      </div>
+    </div>
+    <div class="cf-table-wrap"><table>
+      <thead class="thead-tf"><tr>
+        <th style="text-align:left;min-width:120px">Fecha</th>
+        <th>Cuenta a cobrar</th>
+      </tr></thead>
+      <tbody id="tbody-B"><tr><td colspan="2" class="no-data">Cargando datos...</td></tr></tbody>
+    </table></div>
+  </div>
+
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
