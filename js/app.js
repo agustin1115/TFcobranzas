@@ -321,4 +321,23 @@ async function loadAllData(){
   }
 }
 
+// ── ZOOM ─────────────────────────────────────────────────────────────────
+const ZOOM_MIN = 70, ZOOM_MAX = 200, ZOOM_STEP = 10;
+let zoomLevel = 100;
+try {
+  const saved = parseInt(localStorage.getItem('tfcob_zoom'), 10);
+  if (saved >= ZOOM_MIN && saved <= ZOOM_MAX) zoomLevel = saved;
+} catch(e) {}
+
+function aplicarZoom(){
+  const page = document.querySelector('.page');
+  if (page) page.style.zoom = (zoomLevel / 100);
+  const el = document.getElementById('zoom-level');
+  if (el) el.textContent = zoomLevel + '%';
+  try { localStorage.setItem('tfcob_zoom', zoomLevel); } catch(e) {}
+}
+function zoomIn(){ zoomLevel = Math.min(ZOOM_MAX, zoomLevel + ZOOM_STEP); aplicarZoom(); }
+function zoomOut(){ zoomLevel = Math.max(ZOOM_MIN, zoomLevel - ZOOM_STEP); aplicarZoom(); }
+
+aplicarZoom();
 loadAllData();

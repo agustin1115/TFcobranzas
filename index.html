@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260917d">
+<link rel="stylesheet" href="css/style.css?v=20260917e">
 </head>
 <body>
 <div id="loading-bar"></div>
@@ -18,7 +18,12 @@
       <div class="header-title">Cuentas a Cobrar Proyectadas</div>
       <div class="header-sub" id="fecha-carga">Cargando…</div>
     </div>
-    <button class="btn-refresh" id="btn-refresh" onclick="loadAllData()">↺ Actualizar</button>
+    <div class="zoom-controls">
+      <button class="btn-refresh btn-zoom" id="btn-zoom-out" onclick="zoomOut()" title="Alejar">🔍−</button>
+      <span id="zoom-level">100%</span>
+      <button class="btn-refresh btn-zoom" id="btn-zoom-in" onclick="zoomIn()" title="Acercar">🔍+</button>
+      <button class="btn-refresh" id="btn-refresh" onclick="loadAllData()">↺ Actualizar</button>
+    </div>
   </div>
 
   <div id="upload-messages"></div>
@@ -77,6 +82,6 @@
 
 </div>
 
-<script src="js/app.js?v=20260917d"></script>
+<script src="js/app.js?v=20260917e"></script>
 </body>
 </html>
