@@ -41,9 +41,9 @@
     </div>
     <div class="cf-table-wrap"><table>
       <thead class="thead-tf"><tr>
-        <th style="text-align:left;min-width:120px">Fecha</th>
-        <th>Días</th>
-        <th>Cuenta a cobrar</th>
+        <th id="th-A-fecha" style="text-align:left;min-width:120px" onclick="ordenarTabla('A','fecha')">Fecha</th>
+        <th id="th-A-dias" onclick="ordenarTabla('A','dias')">Días</th>
+        <th id="th-A-importe" onclick="ordenarTabla('A','importe')">Cuenta a cobrar</th>
       </tr></thead>
       <tbody id="tbody-A"><tr><td colspan="3" class="no-data">Cargando datos...</td></tr></tbody>
     </table></div>
@@ -67,9 +67,9 @@
     </div>
     <div class="cf-table-wrap"><table>
       <thead class="thead-tf"><tr>
-        <th style="text-align:left;min-width:120px">Fecha</th>
-        <th>Días</th>
-        <th>Cuenta a cobrar</th>
+        <th id="th-B-fecha" style="text-align:left;min-width:120px" onclick="ordenarTabla('B','fecha')">Fecha</th>
+        <th id="th-B-dias" onclick="ordenarTabla('B','dias')">Días</th>
+        <th id="th-B-importe" onclick="ordenarTabla('B','importe')">Cuenta a cobrar</th>
       </tr></thead>
       <tbody id="tbody-B"><tr><td colspan="3" class="no-data">Cargando datos...</td></tr></tbody>
     </table></div>

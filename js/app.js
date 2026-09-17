@@ -230,21 +230,37 @@ function toggleDetalleFecha(fila, grupo){
   if (chevron) chevron.textContent = abierto ? '▶' : '▼';
 }
 
-function renderPanel(tag, datos, key, porCliente){
-  const p = buildProyeccion(datos, key, porCliente);
-  document.getElementById(`kpi${tag}-total`).textContent = fm(p.totalCobrar);
-  document.getElementById(`kpi${tag}-vencido`).textContent = fm(p.vencido);
-  document.getElementById(`kpi${tag}-dc`).textContent = fm(p.dificilCobro);
-  document.getElementById(`kpi${tag}-tfc`).textContent = fm(p.tfCarnes);
-  document.getElementById(`kpi${tag}-tfc-sub`).textContent =
-    p.tfCarnesAplicar > 0 ? `− ${fm(p.tfCarnesAplicar)} a aplicar → neto ${fm(p.tfCarnesNeto)}` : '';
-  document.getElementById(`kpi${tag}-d7`).textContent = fm(p.d7);
-  document.getElementById(`kpi${tag}-d15`).textContent = fm(p.d15);
-  document.getElementById(`kpi${tag}-d15plus`).textContent = fm(p.dMas);
+// Estado de orden de la tabla y última proyección calculada, por panel (A/B).
+// Se guarda la proyección para poder reordenar sin tener que recalcular todo.
+const sortState = { A: { col: 'fecha', dir: 1 }, B: { col: 'fecha', dir: 1 } };
+const ultimaProyeccion = { A: null, B: null };
+
+function ordenarTabla(tag, columna){
+  const st = sortState[tag];
+  if (st.col === columna) st.dir *= -1; else { st.col = columna; st.dir = 1; }
+  renderTabla(tag);
+}
+
+function renderTabla(tag){
+  const p = ultimaProyeccion[tag];
+  if (!p) return;
+  const { col, dir } = sortState[tag];
+  const valor = r => col === 'fecha' ? r.fecha : col === 'dias' ? r.dias : r.importe;
+  const rows = [...p.rows].sort((a, b) => {
+    const va = valor(a), vb = valor(b);
+    return (va > vb ? 1 : va < vb ? -1 : 0) * dir;
+  });
+
+  ['fecha', 'dias', 'importe'].forEach(c => {
+    const th = document.getElementById(`th-${tag}-${c}`);
+    if (!th) return;
+    th.classList.remove('sorted-asc', 'sorted-desc');
+    if (c === col) th.classList.add(dir === 1 ? 'sorted-asc' : 'sorted-desc');
+  });
 
   const tbody = document.getElementById(`tbody-${tag}`);
-  if (!p.rows.length) { tbody.innerHTML = '<tr><td colspan="3" class="no-data">Sin cuentas a cobrar</td></tr>'; return; }
-  tbody.innerHTML = p.rows.map((r, i) => {
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="3" class="no-data">Sin cuentas a cobrar</td></tr>'; return; }
+  tbody.innerHTML = rows.map((r, i) => {
     const rc = r.dias < 0 ? 'overdue-row' : r.dias <= 7 ? 'soon-row' : '';
     const diasLabel = r.dias < 0 ? `vencido ${Math.abs(r.dias)}d` : r.dias === 0 ? 'HOY' : `en ${r.dias}d`;
     const grupo = `${tag}-${i}`;
@@ -259,6 +275,22 @@ function renderPanel(tag, datos, key, porCliente){
     </tr>`).join('');
     return filaFecha + filasDetalle;
   }).join('');
+}
+
+function renderPanel(tag, datos, key, porCliente){
+  const p = buildProyeccion(datos, key, porCliente);
+  ultimaProyeccion[tag] = p;
+  document.getElementById(`kpi${tag}-total`).textContent = fm(p.totalCobrar);
+  document.getElementById(`kpi${tag}-vencido`).textContent = fm(p.vencido);
+  document.getElementById(`kpi${tag}-dc`).textContent = fm(p.dificilCobro);
+  document.getElementById(`kpi${tag}-tfc`).textContent = fm(p.tfCarnes);
+  document.getElementById(`kpi${tag}-tfc-sub`).textContent =
+    p.tfCarnesAplicar > 0 ? `− ${fm(p.tfCarnesAplicar)} a aplicar → neto ${fm(p.tfCarnesNeto)}` : '';
+  document.getElementById(`kpi${tag}-d7`).textContent = fm(p.d7);
+  document.getElementById(`kpi${tag}-d15`).textContent = fm(p.d15);
+  document.getElementById(`kpi${tag}-d15plus`).textContent = fm(p.dMas);
+
+  renderTabla(tag);
 }
 
 // ── LOAD ─────────────────────────────────────────────────────────────────
