@@ -208,7 +208,14 @@ function buildProyeccion(datos, key, porCliente){
       .map(([cliente, importe]) => ({ cliente, importe }))
       .sort((a, b) => b.importe - a.importe)
   }));
-  return { totalCobrar, dificilCobro, tfCarnes, vencido, d7, d15, dMas, rows };
+  // TF Carnes también tiene notas de crédito propias ("a aplicar") en este archivo.
+  // La tarjeta muestra la deuda bruta; acá se calcula el neto para mostrarlo como
+  // sub-dato (antes no se mostraba en ningún lado, aunque sí se usaba para el
+  // "Total a cobrar" -- TF Carnes está afuera de ese total, no de este cálculo).
+  const rTFC = porCliente[CLIENTE_TF_CARNES];
+  const tfCarnesAplicar = rTFC ? (key === 'A' ? rTFC.aplicarA : rTFC.aplicarB) : 0;
+  const tfCarnesNeto = tfCarnes - tfCarnesAplicar;
+  return { totalCobrar, dificilCobro, tfCarnes, tfCarnesAplicar, tfCarnesNeto, vencido, d7, d15, dMas, rows };
 }
 
 // Despliega/oculta las filas de detalle (una por cliente) de una fila de fecha.
@@ -229,6 +236,8 @@ function renderPanel(tag, datos, key, porCliente){
   document.getElementById(`kpi${tag}-vencido`).textContent = fm(p.vencido);
   document.getElementById(`kpi${tag}-dc`).textContent = fm(p.dificilCobro);
   document.getElementById(`kpi${tag}-tfc`).textContent = fm(p.tfCarnes);
+  document.getElementById(`kpi${tag}-tfc-sub`).textContent =
+    p.tfCarnesAplicar > 0 ? `− ${fm(p.tfCarnesAplicar)} a aplicar → neto ${fm(p.tfCarnesNeto)}` : '';
   document.getElementById(`kpi${tag}-d7`).textContent = fm(p.d7);
   document.getElementById(`kpi${tag}-d15`).textContent = fm(p.d15);
   document.getElementById(`kpi${tag}-d15plus`).textContent = fm(p.dMas);
