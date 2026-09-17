@@ -36,6 +36,15 @@ const CLIENTES_DIFICIL_COBRO = new Set([
 ]);
 function esDificilCobro(cliente){ return CLIENTES_DIFICIL_COBRO.has(cliente); }
 
+// TF Carnes es una empresa hermana (intercompany), no un cliente externo real —
+// queda afuera del "Total a cobrar" y de los buckets de días, y se muestra aparte
+// en su propia tarjeta. En la tabla de fechas sí aparecen sus comprobantes
+// recientes (para seguir el cobro día a día), pero no los vencidos hace más de
+// 15 días (deuda vieja intercompany que ya no es seguimiento diario).
+const CLIENTE_TF_CARNES = "TF CARNES S.A.";
+function esTFCarnes(cliente){ return cliente === CLIENTE_TF_CARNES; }
+const TF_CARNES_DIAS_MIN_TABLA = -15;
+
 // ── JSONP LOADER — igual que en Cobranzas, funciona desde file:// sin CORS ─
 function loadSheetJSONP(sheetName) {
   return new Promise((resolve, reject) => {
@@ -142,40 +151,76 @@ function clasificarClientes(datosA, datosB){
 // Arma la proyección estilo cash flow para UN archivo: agrupa por fecha de vencimiento
 // (solo importes positivos = deuda pendiente) y calcula los buckets de días. Excluye
 // difícil cobro del total normal y neteA "a aplicar" solo para clientes con deuda real.
+// Acumula un importe en el bucket de una fecha, guardando también el desglose por
+// cliente para poder mostrarlo al desplegar la fila en la tabla.
+function agregarAFecha(porFecha, fecha, cliente, importe){
+  if (!porFecha[fecha]) porFecha[fecha] = { total: 0, porCliente: {} };
+  porFecha[fecha].total += importe;
+  porFecha[fecha].porCliente[cliente] = (porFecha[fecha].porCliente[cliente] || 0) + importe;
+}
+
 // Buckets de días MUTUAMENTE EXCLUYENTES (cada comprobante cae en uno solo):
 //   Vencido        → dias <= 0  (incluye lo que vence hoy)
 //   Próx. 7 días   → 1 a 7 días
 //   De 7 a 15 días → 8 a 15 días
 //   Más de 15 días → 16+ días
 // Vencido + Próx.7 + De7a15 + Más15 = deuda bruta total (antes de netear "a aplicar").
+// TF Carnes y Difícil Cobro quedan afuera de estos buckets y del total: se muestran
+// aparte en sus propias tarjetas.
 function buildProyeccion(datos, key, porCliente){
   const porFecha = {};
-  let dificilCobro = 0, vencido = 0, d7 = 0, d15 = 0, dMas = 0;
+  let dificilCobro = 0, tfCarnes = 0, vencido = 0, d7 = 0, d15 = 0, dMas = 0;
   datos.forEach(d => {
     const r = porCliente[d.cliente];
     const elegible = r && (r.debeA + r.debeB) > 0;
     if (!elegible) return; // sin deuda pendiente en NINGÚN archivo: no aporta ni resta
     if (esDificilCobro(d.cliente)) { if (d.importe > 0) dificilCobro += d.importe; return; }
+    if (esTFCarnes(d.cliente)) {
+      if (d.importe > 0) {
+        tfCarnes += d.importe;
+        const dias = calcularDias(d.vencimiento);
+        // en la tabla no se muestra lo vencido hace más de 15 días (deuda intercompany vieja)
+        if (dias >= TF_CARNES_DIAS_MIN_TABLA) agregarAFecha(porFecha, d.vencimiento, d.cliente, d.importe);
+      }
+      return;
+    }
     if (d.importe > 0) {
       const dias = calcularDias(d.vencimiento);
       if (dias <= 0) vencido += d.importe;
       else if (dias <= 7) d7 += d.importe;
       else if (dias <= 15) d15 += d.importe;
       else dMas += d.importe;
-      porFecha[d.vencimiento] = (porFecha[d.vencimiento] || 0) + d.importe;
+      agregarAFecha(porFecha, d.vencimiento, d.cliente, d.importe);
     }
   });
   let totalCobrar = 0;
   Object.entries(porCliente).forEach(([cliente, r]) => {
-    if ((r.debeA + r.debeB) <= 0 || esDificilCobro(cliente)) return;
+    if ((r.debeA + r.debeB) <= 0 || esDificilCobro(cliente) || esTFCarnes(cliente)) return;
     const debe = key === 'A' ? r.debeA : r.debeB;
     const aplicar = key === 'A' ? r.aplicarA : r.aplicarB;
     totalCobrar += debe - aplicar;
   });
   const rows = Object.keys(porFecha).sort().map(f => ({
-    fecha: f, importe: porFecha[f], dias: calcularDias(f)
+    fecha: f,
+    importe: porFecha[f].total,
+    dias: calcularDias(f),
+    detalles: Object.entries(porFecha[f].porCliente)
+      .map(([cliente, importe]) => ({ cliente, importe }))
+      .sort((a, b) => b.importe - a.importe)
   }));
-  return { totalCobrar, dificilCobro, vencido, d7, d15, dMas, rows };
+  return { totalCobrar, dificilCobro, tfCarnes, vencido, d7, d15, dMas, rows };
+}
+
+// Despliega/oculta las filas de detalle (una por cliente) de una fila de fecha.
+// Son filas hermanas en el mismo tbody, agrupadas por data-grupo (no se puede anidar
+// <tr> dentro de otro <tr>).
+function toggleDetalleFecha(fila, grupo){
+  const filas = document.querySelectorAll(`tr.detalle-row[data-grupo="${grupo}"]`);
+  if (!filas.length) return;
+  const abierto = filas[0].style.display !== 'none';
+  filas.forEach(f => { f.style.display = abierto ? 'none' : 'table-row'; });
+  const chevron = fila.querySelector('.chevron');
+  if (chevron) chevron.textContent = abierto ? '▶' : '▼';
 }
 
 function renderPanel(tag, datos, key, porCliente){
@@ -183,19 +228,27 @@ function renderPanel(tag, datos, key, porCliente){
   document.getElementById(`kpi${tag}-total`).textContent = fm(p.totalCobrar);
   document.getElementById(`kpi${tag}-vencido`).textContent = fm(p.vencido);
   document.getElementById(`kpi${tag}-dc`).textContent = fm(p.dificilCobro);
+  document.getElementById(`kpi${tag}-tfc`).textContent = fm(p.tfCarnes);
   document.getElementById(`kpi${tag}-d7`).textContent = fm(p.d7);
   document.getElementById(`kpi${tag}-d15`).textContent = fm(p.d15);
   document.getElementById(`kpi${tag}-d15plus`).textContent = fm(p.dMas);
 
   const tbody = document.getElementById(`tbody-${tag}`);
-  if (!p.rows.length) { tbody.innerHTML = '<tr><td colspan="2" class="no-data">Sin cuentas a cobrar</td></tr>'; return; }
-  tbody.innerHTML = p.rows.map(r => {
+  if (!p.rows.length) { tbody.innerHTML = '<tr><td colspan="3" class="no-data">Sin cuentas a cobrar</td></tr>'; return; }
+  tbody.innerHTML = p.rows.map((r, i) => {
     const rc = r.dias < 0 ? 'overdue-row' : r.dias <= 7 ? 'soon-row' : '';
-    const label = r.dias < 0 ? `vencido ${Math.abs(r.dias)}d` : r.dias === 0 ? 'HOY' : `en ${r.dias}d`;
-    return `<tr class="${rc}">
-      <td><span class="dlabel">${fmDate(r.fecha)}</span><span class="dsub">${label}</span></td>
+    const diasLabel = r.dias < 0 ? `vencido ${Math.abs(r.dias)}d` : r.dias === 0 ? 'HOY' : `en ${r.dias}d`;
+    const grupo = `${tag}-${i}`;
+    const filaFecha = `<tr class="${rc}" style="cursor:pointer" onclick="toggleDetalleFecha(this,'${grupo}')">
+      <td><span class="chevron">▶</span><span class="dlabel">${fmDate(r.fecha)}</span></td>
+      <td class="dsub">${diasLabel}</td>
       <td>${fm(r.importe)}</td>
     </tr>`;
+    const filasDetalle = r.detalles.map(x => `<tr class="detalle-row" data-grupo="${grupo}" style="display:none">
+      <td colspan="2" class="detalle-cliente">${x.cliente}</td>
+      <td class="detalle-importe">${fm(x.importe)}</td>
+    </tr>`).join('');
+    return filaFecha + filasDetalle;
   }).join('');
 }
 
