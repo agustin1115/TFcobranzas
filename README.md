@@ -34,3 +34,7 @@ el sistema de Cobranzas completo. El Sheet debe estar compartido como
 ## Deploy
 
 GitHub Pages sirve `index.html` directo desde la rama `main`.
+
+`css/style.css` y `js/app.js` se referencian con un query string de versión
+(`?v=AAAAMMDDx`) para evitar que el navegador quede con una copia vieja en caché.
+Al hacer un cambio en CSS o JS, subir también ese número en `index.html`.
