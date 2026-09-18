@@ -16,7 +16,6 @@
 body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--n800);font-size:14px}
 
 /* ─── Selector de empresa (TF Carnes / Trade Food) ─── */
-.company-switch-bar{padding:16px 28px 0}
 .company-switch{display:inline-flex;border-radius:999px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .cs-btn{padding:10px 26px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;background:#dcdcd6;color:#8c8f85;font-family:inherit;transition:background .15s,color .15s}
 .cs-btn.active{background:#4a5d3a;color:#fff}
@@ -112,17 +111,14 @@ td.date{color:var(--n600)}
 </head>
 <body>
 
-<div class="company-switch-bar">
-  <div class="company-switch">
-    <a href="tfcarnes.html" class="cs-btn active">TF Carnes</a>
-    <a href="index.html" class="cs-btn">Trade Food</a>
-  </div>
-</div>
-
 <div class="header">
   <div>
     <div class="hdate" id="report-date"></div>
     <div style="font-size:11px;color:var(--g400);margin-top:3px;text-transform:uppercase;letter-spacing:.06em">Cuentas a Cobrar</div>
+  </div>
+  <div class="company-switch">
+    <a href="tfcarnes.html" class="cs-btn active">TF Carnes</a>
+    <a href="index.html" class="cs-btn">Trade Food</a>
   </div>
   <div style="text-align:right">
     <div class="htitle">TF Carnes</div>
