@@ -27,9 +27,12 @@ el sistema de Cobranzas completo. El Sheet debe estar compartido como
 ## Vista
 
 - **Archivo A** (arriba) y **Archivo B** (abajo), cada uno con su propia grilla de KPIs
-  (Total a cobrar / Próx. 7 días / De 7 a 15 días / Más de 15 días) y su tabla de
-  proyección (Fecha | Cuenta a cobrar), con el mismo formato visual que la tabla de
-  cash flow de cashflow-tesoreria.
+  (Total a cobrar / Vencido / Difícil cobro / TF Carnes / Próx. 7 días / De 7 a 15 días /
+  Más de 15 días) y su tabla de proyección (Fecha | Días | Cuenta a cobrar | Empresas),
+  con el mismo formato visual que la tabla de cash flow de cashflow-tesoreria.
+- Las tres primeras columnas de la tabla se pueden ordenar haciendo clic en el
+  encabezado. La columna **Empresas** muestra, para cada fecha, todos los clientes que
+  componen ese monto con su importe entre paréntesis (ej. `Cliente A ($123.456), Cliente B ($54.321)`).
 
 ## Deploy
 

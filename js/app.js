@@ -218,18 +218,6 @@ function buildProyeccion(datos, key, porCliente){
   return { totalCobrar, dificilCobro, tfCarnes, tfCarnesAplicar, tfCarnesNeto, vencido, d7, d15, dMas, rows };
 }
 
-// Despliega/oculta las filas de detalle (una por cliente) de una fila de fecha.
-// Son filas hermanas en el mismo tbody, agrupadas por data-grupo (no se puede anidar
-// <tr> dentro de otro <tr>).
-function toggleDetalleFecha(fila, grupo){
-  const filas = document.querySelectorAll(`tr.detalle-row[data-grupo="${grupo}"]`);
-  if (!filas.length) return;
-  const abierto = filas[0].style.display !== 'none';
-  filas.forEach(f => { f.style.display = abierto ? 'none' : 'table-row'; });
-  const chevron = fila.querySelector('.chevron');
-  if (chevron) chevron.textContent = abierto ? '▶' : '▼';
-}
-
 // Estado de orden de la tabla y última proyección calculada, por panel (A/B).
 // Se guarda la proyección para poder reordenar sin tener que recalcular todo.
 const sortState = { A: { col: 'fecha', dir: 1 }, B: { col: 'fecha', dir: 1 } };
@@ -259,21 +247,17 @@ function renderTabla(tag){
   });
 
   const tbody = document.getElementById(`tbody-${tag}`);
-  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="3" class="no-data">Sin cuentas a cobrar</td></tr>'; return; }
-  tbody.innerHTML = rows.map((r, i) => {
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="4" class="no-data">Sin cuentas a cobrar</td></tr>'; return; }
+  tbody.innerHTML = rows.map(r => {
     const rc = r.dias < 0 ? 'overdue-row' : r.dias <= 7 ? 'soon-row' : '';
     const diasLabel = r.dias < 0 ? `vencido ${Math.abs(r.dias)}d` : r.dias === 0 ? 'HOY' : `en ${r.dias}d`;
-    const grupo = `${tag}-${i}`;
-    const filaFecha = `<tr class="${rc}" style="cursor:pointer" onclick="toggleDetalleFecha(this,'${grupo}')">
-      <td><span class="chevron">▶</span><span class="dlabel">${fmDate(r.fecha)}</span></td>
+    const empresas = r.detalles.map(x => `${x.cliente} (${fm(x.importe)})`).join(', ');
+    return `<tr class="${rc}">
+      <td><span class="dlabel">${fmDate(r.fecha)}</span></td>
       <td class="dsub">${diasLabel}</td>
       <td>${fm(r.importe)}</td>
+      <td class="empresas-cell">${empresas}</td>
     </tr>`;
-    const filasDetalle = r.detalles.map(x => `<tr class="detalle-row" data-grupo="${grupo}" style="display:none">
-      <td colspan="2" class="detalle-cliente">${x.cliente}</td>
-      <td class="detalle-importe">${fm(x.importe)}</td>
-    </tr>`).join('');
-    return filaFecha + filasDetalle;
   }).join('');
 }
 
