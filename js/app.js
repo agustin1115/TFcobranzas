@@ -36,15 +36,6 @@ const CLIENTES_DIFICIL_COBRO = new Set([
 ]);
 function esDificilCobro(cliente){ return CLIENTES_DIFICIL_COBRO.has(cliente); }
 
-// TF Carnes es una empresa hermana (intercompany), no un cliente externo real —
-// queda afuera del "Total a cobrar" y de los buckets de días, y se muestra aparte
-// en su propia tarjeta. En la tabla de fechas sí aparecen sus comprobantes
-// recientes (para seguir el cobro día a día), pero no los vencidos hace más de
-// 15 días (deuda vieja intercompany que ya no es seguimiento diario).
-const CLIENTE_TF_CARNES = "TF CARNES S.A.";
-function esTFCarnes(cliente){ return cliente === CLIENTE_TF_CARNES; }
-const TF_CARNES_DIAS_MIN_TABLA = -15;
-
 // ── JSONP LOADER — igual que en Cobranzas, funciona desde file:// sin CORS ─
 function loadSheetJSONP(sheetName) {
   return new Promise((resolve, reject) => {
@@ -165,25 +156,16 @@ function agregarAFecha(porFecha, fecha, cliente, importe){
 //   De 7 a 15 días → 8 a 15 días
 //   Más de 15 días → 16+ días
 // Vencido + Próx.7 + De7a15 + Más15 = deuda bruta total (antes de netear "a aplicar").
-// TF Carnes y Difícil Cobro quedan afuera de estos buckets y del total: se muestran
-// aparte en sus propias tarjetas.
+// Difícil Cobro queda afuera de estos buckets y del total: se muestra aparte en su
+// propia tarjeta. TF Carnes se trata como un cliente normal (sin exclusión).
 function buildProyeccion(datos, key, porCliente){
   const porFecha = {};
-  let dificilCobro = 0, tfCarnes = 0, vencido = 0, d7 = 0, d15 = 0, dMas = 0;
+  let dificilCobro = 0, vencido = 0, d7 = 0, d15 = 0, dMas = 0;
   datos.forEach(d => {
     const r = porCliente[d.cliente];
     const elegible = r && (r.debeA + r.debeB) > 0;
     if (!elegible) return; // sin deuda pendiente en NINGÚN archivo: no aporta ni resta
     if (esDificilCobro(d.cliente)) { if (d.importe > 0) dificilCobro += d.importe; return; }
-    if (esTFCarnes(d.cliente)) {
-      if (d.importe > 0) {
-        tfCarnes += d.importe;
-        const dias = calcularDias(d.vencimiento);
-        // en la tabla no se muestra lo vencido hace más de 15 días (deuda intercompany vieja)
-        if (dias >= TF_CARNES_DIAS_MIN_TABLA) agregarAFecha(porFecha, d.vencimiento, d.cliente, d.importe);
-      }
-      return;
-    }
     if (d.importe > 0) {
       const dias = calcularDias(d.vencimiento);
       if (dias <= 0) vencido += d.importe;
@@ -195,7 +177,7 @@ function buildProyeccion(datos, key, porCliente){
   });
   let totalCobrar = 0;
   Object.entries(porCliente).forEach(([cliente, r]) => {
-    if ((r.debeA + r.debeB) <= 0 || esDificilCobro(cliente) || esTFCarnes(cliente)) return;
+    if ((r.debeA + r.debeB) <= 0 || esDificilCobro(cliente)) return;
     const debe = key === 'A' ? r.debeA : r.debeB;
     const aplicar = key === 'A' ? r.aplicarA : r.aplicarB;
     totalCobrar += debe - aplicar;
@@ -208,14 +190,7 @@ function buildProyeccion(datos, key, porCliente){
       .map(([cliente, importe]) => ({ cliente, importe }))
       .sort((a, b) => b.importe - a.importe)
   }));
-  // TF Carnes también tiene notas de crédito propias ("a aplicar") en este archivo.
-  // La tarjeta muestra la deuda bruta; acá se calcula el neto para mostrarlo como
-  // sub-dato (antes no se mostraba en ningún lado, aunque sí se usaba para el
-  // "Total a cobrar" -- TF Carnes está afuera de ese total, no de este cálculo).
-  const rTFC = porCliente[CLIENTE_TF_CARNES];
-  const tfCarnesAplicar = rTFC ? (key === 'A' ? rTFC.aplicarA : rTFC.aplicarB) : 0;
-  const tfCarnesNeto = tfCarnes - tfCarnesAplicar;
-  return { totalCobrar, dificilCobro, tfCarnes, tfCarnesAplicar, tfCarnesNeto, vencido, d7, d15, dMas, rows };
+  return { totalCobrar, dificilCobro, vencido, d7, d15, dMas, rows };
 }
 
 // Estado de orden de la tabla y última proyección calculada, por panel (A/B).
@@ -267,9 +242,6 @@ function renderPanel(tag, datos, key, porCliente){
   document.getElementById(`kpi${tag}-total`).textContent = fm(p.totalCobrar);
   document.getElementById(`kpi${tag}-vencido`).textContent = fm(p.vencido);
   document.getElementById(`kpi${tag}-dc`).textContent = fm(p.dificilCobro);
-  document.getElementById(`kpi${tag}-tfc`).textContent = fm(p.tfCarnes);
-  document.getElementById(`kpi${tag}-tfc-sub`).textContent =
-    p.tfCarnesAplicar > 0 ? `− ${fm(p.tfCarnesAplicar)} a aplicar → neto ${fm(p.tfCarnesNeto)}` : '';
   document.getElementById(`kpi${tag}-d7`).textContent = fm(p.d7);
   document.getElementById(`kpi${tag}-d15`).textContent = fm(p.d15);
   document.getElementById(`kpi${tag}-d15plus`).textContent = fm(p.dMas);

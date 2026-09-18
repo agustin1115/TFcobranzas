@@ -19,6 +19,8 @@ el sistema de Cobranzas completo. El Sheet debe estar compartido como
   no son clientes reales).
 - Los clientes de `CLIENTES_DIFICIL_COBRO` quedan afuera del "Total a cobrar" normal y se
   muestran aparte, igual que en el Resumen Ejecutivo del sistema de Cobranzas.
+- TF Carnes (empresa hermana/intercompany) se trata como un cliente normal: entra en el
+  "Total a cobrar", en los buckets de días y en la tabla como cualquier otro.
 - Un cliente entra a la proyección de un archivo (A o B) si tiene deuda pendiente en
   **cualquiera de los dos archivos** (combinados); recién ahí se le netea el "a aplicar"
   (notas de crédito) propio de cada archivo. Esto replica exactamente la lógica de
@@ -27,8 +29,8 @@ el sistema de Cobranzas completo. El Sheet debe estar compartido como
 ## Vista
 
 - **Archivo A** (arriba) y **Archivo B** (abajo), cada uno con su propia grilla de KPIs
-  (Total a cobrar / Vencido / Difícil cobro / TF Carnes / Próx. 7 días / De 7 a 15 días /
-  Más de 15 días) y su tabla de proyección (Fecha | Días | Cuenta a cobrar | Empresas),
+  (Total a cobrar / Vencido / Difícil cobro / Próx. 7 días / De 7 a 15 días / Más de 15 días)
+  y su tabla de proyección (Fecha | Días | Cuenta a cobrar | Empresas),
   con el mismo formato visual que la tabla de cash flow de cashflow-tesoreria.
 - Las tres primeras columnas de la tabla se pueden ordenar haciendo clic en el
   encabezado. La columna **Empresas** muestra, para cada fecha, todos los clientes que
