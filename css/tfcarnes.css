@@ -87,3 +87,7 @@ tr.soon-row .dsub{color:#8a6800}
   table{font-size:11px}
   .empresas-cell{min-width:180px}
 }
+
+/* ─── Botón LEEME ─── */
+.leeme-btn{display:block;text-align:center;margin:28px auto 10px;max-width:360px;padding:14px 22px;border-radius:10px;background:#fff;border:1.5px dashed var(--tfc-primary);color:var(--tfc-primary);font-weight:600;font-size:13px;text-decoration:none;transition:background .15s,color .15s}
+.leeme-btn:hover{background:var(--tfc-primary);color:#fff}

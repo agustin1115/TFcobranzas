@@ -1,0 +1,83 @@
+:root{
+  color-scheme:light;
+  --tf-primary:#630000;
+  --tf-light:#F5ECEC;
+  --tfc-primary:#145533;
+  --tfc-light:#EAF4EE;
+  --ink:#1a1a1a;
+  --sub:#666;
+  --line:#e5e2da;
+  --font:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:#EDEAE3;color:var(--ink);font-size:14.5px;line-height:1.6}
+.wrap{max-width:760px;margin:0 auto;padding:32px 24px 80px}
+
+.top-nav{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:28px}
+.back-links{display:flex;gap:8px}
+.back-link{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;text-decoration:none;border:1px solid var(--line);color:#888;background:#fff}
+.back-link.tf{color:var(--tf-primary);border-color:var(--tf-light)}
+.back-link.tfc{color:var(--tfc-primary);border-color:var(--tfc-light)}
+.back-link:hover{filter:brightness(.97)}
+
+.hero{margin-bottom:8px}
+.hero-kicker{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#999}
+.hero h1{font-size:28px;font-weight:700;margin:6px 0 10px;line-height:1.25}
+.hero p{color:var(--sub);font-size:14.5px;max-width:600px}
+
+.toc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin:26px 0 40px}
+.toc-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#999;margin-bottom:10px}
+.toc ol{list-style:none;columns:2;column-gap:24px}
+.toc li{margin-bottom:7px;font-size:13px}
+.toc a{color:var(--ink);text-decoration:none;font-weight:500}
+.toc a:hover{text-decoration:underline}
+.toc .n{display:inline-block;width:20px;color:#bbb;font-weight:700}
+
+section{margin:44px 0;scroll-margin-top:20px}
+section h2{font-size:19px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+section h2 .num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;font-weight:700;flex:none}
+section .lead{color:var(--sub);font-size:13.5px;margin-bottom:16px}
+section p{margin-bottom:12px}
+section ul, section ol.steps{margin:12px 0 12px 4px;padding-left:18px}
+section li{margin-bottom:6px}
+code{background:#f1efe7;border-radius:4px;padding:1px 6px;font-size:12.5px;font-family:'SF Mono',Consolas,monospace;color:#8a4b00}
+
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:16px 0}
+.card.tf{border-left:4px solid var(--tf-primary)}
+.card.tfc{border-left:4px solid var(--tfc-primary)}
+.card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#999;margin-bottom:8px}
+
+.formula{background:#faf9f5;border:1px dashed #d8d4c8;border-radius:10px;padding:16px 20px;margin:14px 0;font-family:'SF Mono',Consolas,monospace;font-size:13px;color:#333;overflow-x:auto;white-space:pre}
+
+.callout{border-radius:10px;padding:14px 18px;margin:16px 0;font-size:13px}
+.callout.ok{background:#eef7ee;border:1px solid #cfe6cf;color:#2c5a2c}
+.callout.warn{background:#fff6ea;border:1px solid #f0d9a8;color:#7a5300}
+.callout.ex{background:#f4f1ff;border:1px solid #dcd4f5;color:#463a7a}
+.callout b{font-weight:700}
+
+.mermaid{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;margin:18px 0;text-align:center;overflow-x:auto}
+
+table.cmp{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px;background:#fff;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+table.cmp th{background:#2c2c28;color:#fff;text-align:left;padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+table.cmp td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+table.cmp tr:last-child td{border-bottom:none}
+table.cmp td:first-child{font-weight:600;color:#555;width:150px}
+table.cmp td.tf-cell{color:var(--tf-primary)}
+table.cmp td.tfc-cell{color:var(--tfc-primary)}
+
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.chip{padding:5px 12px;border-radius:20px;font-size:11.5px;font-weight:600;background:#f1efe7;color:#666}
+.chip.red{background:#fdeceb;color:#b03a2e}
+.chip.amber{background:#fdf3e2;color:#a3720b}
+.chip.green{background:#eaf7ee;color:#1e7a49}
+
+hr.sep{border:none;border-top:1px solid var(--line);margin:44px 0}
+
+.foot{text-align:center;color:#aaa;font-size:12px;margin-top:50px}
+
+@media (max-width:640px){
+  .wrap{padding:20px 16px 60px}
+  .hero h1{font-size:22px}
+  .toc ol{columns:1}
+  .mermaid{padding:10px}
+}
