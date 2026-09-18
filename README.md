@@ -1,13 +1,23 @@
 # Trade Food · Cuentas a Cobrar Proyectadas
 
 App estática (sin build, sin dependencias) que muestra una proyección estilo cash flow
-de las cuentas a cobrar de Trade Food, leyendo en vivo desde Google Sheets.
+de las cuentas a cobrar, leyendo en vivo desde Google Sheets. El repo alberga dos
+dashboards independientes — uno por empresa — con un selector arriba de todo para
+pasar de uno al otro.
 
 ## Estructura
 
-- `index.html` — markup
-- `css/style.css` — estilos (mismos tokens de marca que el panel Trade Food de [cashflow-tesoreria](https://github.com/agustin1115/cashflow-tesoreria))
-- `js/app.js` — lógica: lectura JSONP del Sheet, clasificación de clientes y cálculo de la proyección
+- `index.html` — dashboard de **Trade Food** (cash flow simple: KPIs + tabla de proyección)
+- `css/style.css` — estilos de `index.html` (mismos tokens de marca que el panel Trade Food de [cashflow-tesoreria](https://github.com/agustin1115/cashflow-tesoreria))
+- `js/app.js` — lógica de `index.html`: lectura JSONP del Sheet, clasificación de clientes y cálculo de la proyección
+- `tfcarnes.html` — dashboard completo de **TF Carnes** (Resumen Ejecutivo, Cuentas a
+  Cobrar, Estado por Cliente, Clientes a Resolver, Empleados, Reclamar, Clientes
+  Excluidos). Archivo autocontenido (su propio `<style>`/`<script>`), lee un Google
+  Sheet distinto (`GSHEET_ID` propio de TF Carnes, pestañas `Archivo A`/`Archivo B`/`Comerciales`).
+- El selector de empresa (`.company-switch-bar` / `.cs-btn`) está definido en ambos
+  archivos (CSS embebido en `tfcarnes.html`, compartido en `css/style.css` para
+  `index.html`) — son simples links cruzados (`href="tfcarnes.html"` / `href="index.html"`),
+  no hay estado compartido entre los dos dashboards.
 
 ## Datos
 

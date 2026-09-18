@@ -1,0 +1,2249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>TF Carnes - Cobranzas</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --g50:#f0faf4;--g100:#d4f0e0;--g200:#a8dfc2;--g400:#52b882;
+  --g500:#2d9e62;--g600:#1e7a49;--g700:#145533;--g800:#0c3b24;
+  --n50:#f8f9f7;--n100:#eceee9;--n200:#d4d7cf;--n400:#8f9487;--n600:#5a6055;--n800:#2c3028;
+  --bg:#f4f7f4;--white:#fff;--red:#dc2626;--amber:#d97706;--blue:#2563eb;
+  --radius:10px;--rsm:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--n800);font-size:14px}
+
+/* ─── Selector de empresa (TF Carnes / Trade Food) ─── */
+.company-switch-bar{padding:16px 28px 0}
+.company-switch{display:inline-flex;border-radius:999px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.cs-btn{padding:10px 26px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;background:#dcdcd6;color:#8c8f85;font-family:inherit;transition:background .15s,color .15s}
+.cs-btn.active{background:#4a5d3a;color:#fff}
+.cs-btn:not(.active):hover{background:#cfcfc8}
+
+.header{background:var(--g700);padding:14px 28px;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--g500)}
+.hdate{font-size:13px;color:var(--g200);font-weight:300}
+.htitle{font-family:"DM Serif Display",serif;font-size:22px;color:var(--g50)}
+.hsub{font-size:11px;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;text-align:right;margin-top:2px}
+
+.tabsbar{background:var(--g800);display:flex;padding:0 28px}
+.tabbtn{padding:11px 20px;background:transparent;border:none;border-bottom:3px solid transparent;color:var(--g200);font-size:13px;font-family:"DM Sans",sans-serif;cursor:pointer}
+.tabbtn:hover{color:#fff;background:rgba(255,255,255,.07)}
+.tabbtn.active{color:#fff;border-bottom-color:var(--g400);font-weight:500}
+
+/* UPLOAD - inputs visibles estilizados */
+.uploadbar{background:var(--g50);border-bottom:1px solid var(--g100);padding:12px 28px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.upload-group{display:flex;flex-direction:column;gap:4px}
+.upload-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--n600)}
+.upload-group input[type=file]{
+  font-family:"DM Sans",sans-serif;font-size:12px;color:var(--n800);
+  background:var(--white);border:1px solid var(--n200);border-radius:var(--rsm);
+  padding:5px 8px;cursor:pointer;width:220px;
+}
+.upload-group input[type=file]::file-selector-button{
+  background:var(--g600);color:#fff;border:none;border-radius:4px;
+  padding:4px 10px;font-size:12px;font-family:"DM Sans",sans-serif;cursor:pointer;margin-right:8px;
+}
+.upload-group input[type=file]::file-selector-button:hover{background:var(--g500)}
+.upload-group.b input[type=file]::file-selector-button{background:var(--blue)}
+.upload-group.b input[type=file]::file-selector-button:hover{background:#1d4ed8}
+#fileCom::file-selector-button{background:#6d5fc7;color:#fff;border:none;border-radius:4px;padding:4px 10px;font-size:12px;font-family:"DM Sans",sans-serif;cursor:pointer;margin-right:8px}
+#fileCom::file-selector-button:hover{background:#5a4eb0}
+.upload-status{font-size:12px;color:var(--g600);font-weight:500}
+
+.tabcontent{display:none;padding:20px 28px 40px}
+.tabcontent.active{display:block}
+
+/* KPI */
+.kpigrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.kpigroup{grid-column:1/-1;display:flex;align-items:center;gap:8px;margin-top:6px}
+.kpigroup:first-child{margin-top:0}
+.kpilabel{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--n400);white-space:nowrap}
+.kpidiv{flex:1;height:1px;background:var(--n200)}
+.kpicard{background:var(--white);border-radius:var(--radius);padding:13px 16px;border:1px solid var(--g100)}
+.kpititle{font-size:10px;color:var(--n400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.kpisrc{font-size:10px;font-weight:600;display:inline-block;padding:2px 8px;border-radius:10px;margin-bottom:5px}
+.kpisrc.a{background:var(--g100);color:var(--g700)}
+.kpisrc.b{background:#deeeff;color:#1e5fa0}
+.kpisrc.t{background:var(--n100);color:var(--n600)}
+.kpival{font-size:17px;font-weight:600}
+.kpival.red{color:var(--red)}.kpival.amber{color:var(--amber)}.kpival.green{color:var(--g600)}.kpival.blue{color:#2563eb}
+
+/* FILTERS */
+.frow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end}
+.fgrp{display:flex;flex-direction:column;gap:3px}
+.flbl{font-size:10px;color:var(--n400);text-transform:uppercase;letter-spacing:.08em}
+select{padding:7px 10px;border:1px solid var(--n200);border-radius:var(--rsm);font-family:"DM Sans",sans-serif;font-size:13px;background:var(--white);color:var(--n800);min-width:150px}
+select:focus{outline:none;border-color:var(--g400)}
+.btnclr{padding:7px 14px;background:transparent;border:1px solid var(--n200);border-radius:var(--rsm);font-size:12px;color:var(--n600);cursor:pointer;font-family:"DM Sans",sans-serif}
+.btnclr:hover{background:var(--n100)}
+
+/* TABLE */
+.twrap{background:var(--white);border-radius:var(--radius);border:1px solid var(--g100);overflow:hidden}
+.tinfo{padding:9px 16px;font-size:12px;color:var(--n400);border-bottom:1px solid var(--n100);display:flex;justify-content:space-between;background:var(--n50)}
+.tscroll{overflow-x:auto;max-height:calc(100vh - 460px);overflow-y:auto}
+table{width:100%;border-collapse:collapse}
+thead{position:sticky;top:0;z-index:2}
+thead tr{background:var(--g700)}
+th{padding:9px 13px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g100);white-space:nowrap;cursor:pointer;user-select:none}
+th:hover,th.sorted{background:var(--g600)}
+th .sa{margin-left:3px;opacity:.4;font-size:9px}
+th.sorted .sa{opacity:1}
+tbody tr{border-bottom:1px solid #f0f4f0}
+tbody tr:hover{background:#f5fbf7}
+td{padding:8px 13px;font-size:12px;white-space:nowrap}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+td.mono{font-family:monospace;font-size:11px;color:var(--n600)}
+td.date{color:var(--n600)}
+.badge{display:inline-block;padding:2px 9px;border-radius:10px;font-size:10px;font-weight:700}
+.bv{background:#fee2e2;color:#991b1b}.bav{background:#fef9c3;color:#92400e}
+.ba{background:var(--g100);color:var(--g700)}.bb{background:#deeeff;color:#1e5fa0}
+
+/* CLIENTS */
+.ctwrap{background:var(--white);border-radius:var(--radius);border:1px solid var(--g100);overflow:hidden}
+.ctwrap table{width:100%;border-collapse:collapse}
+.ctwrap thead tr{background:var(--g700)}
+.ctwrap th{padding:9px 14px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g100)}
+.ctwrap td{padding:8px 14px;font-size:13px;border-bottom:1px solid #f0f4f0}
+.csrch{margin-bottom:12px}
+.csrch input{padding:7px 10px;border:1px solid var(--n200);border-radius:var(--rsm);font-family:"DM Sans",sans-serif;font-size:13px;width:300px}
+</style>
+</head>
+<body>
+
+<div class="company-switch-bar">
+  <div class="company-switch">
+    <a href="tfcarnes.html" class="cs-btn active">TF Carnes</a>
+    <a href="index.html" class="cs-btn">Trade Food</a>
+  </div>
+</div>
+
+<div class="header">
+  <div>
+    <div class="hdate" id="report-date"></div>
+    <div style="font-size:11px;color:var(--g400);margin-top:3px;text-transform:uppercase;letter-spacing:.06em">Cuentas a Cobrar</div>
+  </div>
+  <div style="text-align:right">
+    <div class="htitle">TF Carnes</div>
+    <div class="hsub">Cobranzas</div>
+  </div>
+</div>
+
+<div class="tabsbar">
+  <button class="tabbtn active" onclick="switchTab(event,'resumen')">Resumen Ejecutivo</button>
+  <button class="tabbtn" onclick="switchTab(event,'cuentas')">Cuentas a Cobrar</button>
+  <button class="tabbtn" onclick="switchTab(event,'estado')">Estado por Cliente</button>
+  <button class="tabbtn" onclick="switchTab(event,'resolver')">Clientes a Resolver</button>
+  <button class="tabbtn" onclick="switchTab(event,'empleados')">Empleados</button>
+  <button class="tabbtn" onclick="switchTab(event,'reclamar')">Reclamar</button>
+  <button class="tabbtn" onclick="switchTab(event,'excluidos')">Clientes Excluidos</button>
+</div>
+
+<div class="uploadbar" style="justify-content:space-between;align-items:center">
+  <div style="display:flex;align-items:center;gap:18px">
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--n600)">Fuente de datos</span>
+      <span style="font-size:13px;color:var(--n800);font-weight:500">&#128202; Google Sheets</span>
+    </div>
+    <span id="gsheet-status" style="font-size:12px;color:var(--amber);font-weight:500">Cargando datos...</span>
+  </div>
+  <button onclick="reloadSheets()" style="padding:6px 16px;background:var(--g600);color:#fff;border:none;border-radius:var(--rsm);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;font-weight:500">&#8635; Actualizar datos</button>
+</div>
+
+<div id="tab-resumen" class="tabcontent active">
+
+  <!-- Sección: Estado por Cliente — solo 3 cuadros neto -->
+  <div style="margin-bottom:28px">
+    <div style="font-family:'DM Serif Display',serif;font-size:18px;color:var(--g700);margin-bottom:4px">Estado por Cliente</div>
+    <div style="font-size:11px;color:var(--n400);margin-bottom:14px">Solo clientes con tilde marcado en la pestaña Estado por Cliente</div>
+    <div id="resumen-estado-neto" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px"></div>
+  </div>
+
+  <!-- Sección: Clientes a Resolver -->
+  <div style="margin-bottom:28px">
+    <div style="font-family:'DM Serif Display',serif;font-size:18px;color:var(--g700);margin-bottom:4px">Clientes a Resolver</div>
+    <div style="font-size:11px;color:var(--n400);margin-bottom:14px">Saldo total de clientes en seguimiento</div>
+    <div id="resumen-resolver-kpi" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px"></div>
+  </div>
+
+  <!-- Sección: Empleados -->
+  <div style="margin-bottom:28px">
+    <div style="font-family:'DM Serif Display',serif;font-size:18px;color:var(--g700);margin-bottom:4px">Empleados</div>
+    <div style="font-size:11px;color:var(--n400);margin-bottom:14px">Saldo total de empleados</div>
+    <div id="resumen-empleados-kpi" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px"></div>
+  </div>
+
+  <!-- Sección: Total Consolidado -->
+  <div>
+    <div style="font-family:'DM Serif Display',serif;font-size:18px;color:var(--g700);margin-bottom:4px">Total Consolidado</div>
+    <div style="font-size:11px;color:var(--n400);margin-bottom:14px">Neto Estado por Cliente + Clientes a Resolver + Empleados</div>
+    <div id="resumen-total-kpi" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px"></div>
+  </div>
+
+</div>
+
+<div id="tab-cuentas" class="tabcontent">
+  <div class="kpigrid" id="kpigrid"></div>
+  <div class="frow">
+    <div class="fgrp"><span class="flbl">Cliente</span><select id="f-cliente" onchange="applyFilters()"><option value="">Todos</option></select></div>
+    <div class="fgrp"><span class="flbl">Comercial</span><select id="f-comercial" onchange="applyFilters()"><option value="">Todos</option></select></div>
+    <div class="fgrp"><span class="flbl">Estado</span><select id="f-estado" onchange="applyFilters()"><option value="">Todos</option><option>Vencido</option><option>A Vencer</option></select></div>
+    <div class="fgrp"><span class="flbl">Archivo</span><select id="f-source" onchange="applyFilters()"><option value="">A y B</option><option>A</option><option>B</option></select></div>
+    <button class="btnclr" onclick="clearFilters()">✕ Limpiar</button>
+  </div>
+  <div class="twrap">
+    <div class="tinfo"><span id="tblcount">—</span><span>Saldo = suma neta de todos los comprobantes del cliente</span></div>
+    <div class="tscroll">
+      <table>
+        <thead><tr>
+          <th onclick="doSort(0)">Cliente <span class="sa">↕</span></th>
+          <th onclick="doSort(1)">Comercial <span class="sa">↕</span></th>
+          <th onclick="doSort(2)">Comprobante <span class="sa">↕</span></th>
+          <th onclick="doSort(3)">F. Facturación <span class="sa">↕</span></th>
+          <th onclick="doSort(4)">F. Vencimiento <span class="sa">↕</span></th>
+          <th onclick="doSort(5)">Días Vencidos <span class="sa">↕</span></th>
+          <th onclick="doSort(6)">Estado <span class="sa">↕</span></th>
+          <th onclick="doSort(7)" style="text-align:right">Importe <span class="sa">↕</span></th>
+          <th onclick="doSort(8)" style="text-align:right">Saldo A <span class="sa">↕</span></th>
+          <th onclick="doSort(9)" style="text-align:right">Saldo B <span class="sa">↕</span></th>
+          <th onclick="doSort(10)" style="text-align:right">Saldo Total <span class="sa">↕</span></th>
+          <th onclick="doSort(11)">Arch. <span class="sa">↕</span></th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="tab-estado" class="tabcontent">
+  <!-- KPIs de resumen (solo clientes marcados) -->
+  <div id="estado-kpi-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0 1px;background:var(--n100);border:1px solid var(--n100);border-radius:10px;overflow:hidden;margin-bottom:14px"></div>
+  <!-- KPIs neto (total - a aplicar) -->
+  <div id="estado-neto-grid" style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap"></div>
+
+  <div class="frow" style="margin-bottom:14px;align-items:flex-end">
+    <div class="fgrp" style="position:relative">
+      <span class="flbl">Clientes</span>
+      <div id="ms-trigger" onclick="toggleMultiSelect()" style="min-width:220px;padding:7px 32px 7px 10px;border:1px solid var(--n200);border-radius:var(--rsm);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;background:#fff;position:relative;user-select:none">
+        <span id="ms-label">Todos</span>
+        <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);opacity:.5;font-size:11px">▾</span>
+      </div>
+      <div id="ms-dropdown" style="display:none;position:absolute;top:100%;left:0;min-width:280px;max-height:280px;overflow-y:auto;background:#fff;border:1px solid var(--n200);border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:200;padding:6px 0">
+        <div style="padding:6px 10px;border-bottom:1px solid var(--n100);display:flex;gap:8px">
+          <input type="text" id="ms-search" placeholder="Buscar..." oninput="filterMsOptions()" style="flex:1;padding:5px 8px;font-size:12px;border:1px solid var(--n200);border-radius:4px;font-family:inherit">
+          <button onclick="selectAllMs(true)" style="font-size:11px;padding:4px 8px;background:var(--g600);color:#fff;border:none;border-radius:4px;cursor:pointer">Todos</button>
+          <button onclick="selectAllMs(false)" style="font-size:11px;padding:4px 8px;background:var(--n300);color:#fff;border:none;border-radius:4px;cursor:pointer">Ninguno</button>
+        </div>
+        <div id="ms-options"></div>
+      </div>
+    </div>
+    <div class="fgrp"><span class="flbl">Comercial</span><select id="estado-comercial" onchange="renderEstado()"><option value="">Todos</option></select></div>
+    <button class="btnclr" onclick="selectAllMs(true);document.getElementById('estado-comercial').value='';renderEstado()">✕ Limpiar</button>
+  </div>
+  <div class="twrap">
+    <div style="padding:9px 16px;font-size:12px;color:var(--n400);border-bottom:1px solid var(--n100);display:flex;justify-content:space-between;align-items:center;background:var(--n50)">
+      <span id="estado-count">—</span>
+      <div style="display:flex;align-items:center;gap:14px">
+        <span>Acumulado por cliente — tilde = incluido en métricas</span>
+        <button onclick="exportarEstadoExcel()" title="Exportar Excel por Comercial" style="background:var(--g600);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;font-family:inherit;font-weight:600">🖨️ Exportar Excel</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:var(--g700)">
+            <th style="padding:9px 10px;text-align:center;width:36px">
+              <input type="checkbox" id="chk-all" checked title="Marcar/desmarcar todos" onchange="toggleAllChecks(this.checked)" style="cursor:pointer;width:14px;height:14px;accent-color:var(--g400)">
+            </th>
+            <th onclick="sortEstado(0)" style="padding:9px 13px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g100);white-space:nowrap;cursor:pointer">Cliente <span class="esa" id="esa0">↕</span></th>
+            <th onclick="sortEstado(1)" style="padding:9px 13px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g100);white-space:nowrap;cursor:pointer">Comercial <span class="esa" id="esa1">↕</span></th>
+            <th onclick="sortEstado(2)" style="padding:9px 13px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g100);white-space:nowrap;cursor:pointer">Vencido A <span class="esa" id="esa2">↕</span></th>
+            <th onclick="sortEstado(3)" style="padding:9px 13px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g100);white-space:nowrap;cursor:pointer">Vencido B <span class="esa" id="esa3">↕</span></th>
+            <th onclick="sortEstado(4)" style="padding:9px 13px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g100);white-space:nowrap;cursor:pointer">A Vencer A <span class="esa" id="esa4">↕</span></th>
+            <th onclick="sortEstado(5)" style="padding:9px 13px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g100);white-space:nowrap;cursor:pointer">A Vencer B <span class="esa" id="esa5">↕</span></th>
+            <th onclick="sortEstado(6)" style="padding:9px 13px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g100);white-space:nowrap;cursor:pointer;background:var(--g600)">Total General <span class="esa" id="esa6">↕</span></th>
+            <th onclick="sortEstado(7)" style="padding:9px 13px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#fde68a;white-space:nowrap;cursor:pointer;background:var(--g600)">Total a Aplicar <span class="esa" id="esa7">↕</span></th>
+            <th onclick="sortEstado(8)" style="padding:9px 13px;text-align:center;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g100);white-space:nowrap;cursor:pointer">Cheques <span class="esa" id="esa8">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="estado-tbody"></tbody>
+        <tfoot id="estado-tfoot"></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Popup de facturas para Estado por Cliente -->
+<div id="factura-popup" style="display:none;position:fixed;z-index:1000;background:#fff;border:1px solid var(--n200);border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.18);min-width:700px;max-width:90vw;max-height:70vh;overflow:hidden;flex-direction:column">
+  <div style="background:var(--g700);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-radius:9px 9px 0 0">
+    <span id="popup-title" style="font-size:13px;font-weight:600"></span>
+    <button onclick="closePopup()" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center">×</button>
+  </div>
+  <div style="overflow-y:auto;flex:1">
+    <table style="width:100%;border-collapse:collapse">
+      <thead style="position:sticky;top:0">
+        <tr style="background:var(--g50)">
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--g700);text-align:left;border-bottom:1px solid var(--n200)">Comprobante</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--g700);text-align:left;border-bottom:1px solid var(--n200)">F. Facturación</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--g700);text-align:left;border-bottom:1px solid var(--n200)">F. Vencimiento</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--g700);text-align:center;border-bottom:1px solid var(--n200)">Estado</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--g700);text-align:right;border-bottom:1px solid var(--n200)">Importe</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--g700);text-align:center;border-bottom:1px solid var(--n200)">Arch.</th>
+        </tr>
+      </thead>
+      <tbody id="popup-tbody"></tbody>
+    </table>
+  </div>
+</div>
+<div id="popup-overlay" onclick="closePopup()" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.15)"></div>
+
+<div id="tab-empleados" class="tabcontent">
+  <!-- KPI cards -->
+  <div id="empleados-kpi" style="display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap"></div>
+  <!-- Filters -->
+  <div class="frow">
+    <div class="fgrp"><span class="flbl">Estado</span><select id="emp-estado" onchange="renderEmpleados()"><option value="">Todos</option><option>Vencido</option><option>A Vencer</option></select></div>
+    <div class="fgrp"><span class="flbl">Archivo</span><select id="emp-source" onchange="renderEmpleados()"><option value="">A y B</option><option>A</option><option>B</option></select></div>
+    <button class="btnclr" onclick="document.getElementById('emp-estado').value='';document.getElementById('emp-source').value='';renderEmpleados()">✕ Limpiar</button>
+  </div>
+  <div class="twrap">
+    <div class="tinfo"><span id="emp-count">—</span><span>Empleados — pendiente de configuración</span></div>
+    <div class="tscroll">
+      <table>
+        <thead><tr>
+          <th onclick="sortEmpleados(0)">Cliente <span class="sa" id="empsa0">↕</span></th>
+          <th onclick="sortEmpleados(1)">Comercial <span class="sa" id="empsa1">↕</span></th>
+          <th onclick="sortEmpleados(2)">Comprobante <span class="sa" id="empsa2">↕</span></th>
+          <th onclick="sortEmpleados(3)">F. Facturación <span class="sa" id="empsa3">↕</span></th>
+          <th onclick="sortEmpleados(4)">F. Vencimiento <span class="sa" id="empsa4">↕</span></th>
+          <th onclick="sortEmpleados(5)">Días Vencidos <span class="sa" id="empsa5">↕</span></th>
+          <th onclick="sortEmpleados(6)">Estado <span class="sa" id="empsa6">↕</span></th>
+          <th onclick="sortEmpleados(7)" style="text-align:right">Importe <span class="sa" id="empsa7">↕</span></th>
+          <th onclick="sortEmpleados(8)" style="text-align:right">Saldo A <span class="sa" id="empsa8">↕</span></th>
+          <th onclick="sortEmpleados(9)" style="text-align:right">Saldo B <span class="sa" id="empsa9">↕</span></th>
+          <th onclick="sortEmpleados(10)" style="text-align:right">Saldo Total <span class="sa" id="empsa10">↕</span></th>
+          <th onclick="sortEmpleados(11)">Arch. <span class="sa" id="empsa11">↕</span></th>
+        </tr></thead>
+        <tbody id="empleados-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="tab-reclamar" class="tabcontent">
+  <p style="font-size:12px;color:var(--n400);margin-bottom:16px">
+    Clientes con <strong>importes vencidos</strong> o con <strong>cheques con más de 5 días desde la fecha de emisión</strong>. Hacé clic en el cliente para ver los comprobantes.
+  </p>
+  <div class="twrap">
+    <div style="padding:9px 16px;font-size:12px;color:var(--n400);border-bottom:1px solid var(--n100);display:flex;justify-content:space-between;background:var(--n50)">
+      <span id="reclamar-count">—</span><span>Clic en cliente para ver detalle</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:var(--g700)">
+            <th onclick="sortReclamar(0)" style="padding:9px 13px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g100);white-space:nowrap;cursor:pointer">Cliente <span class="rsa" id="rsa0">↕</span></th>
+            <th onclick="sortReclamar(1)" style="padding:9px 13px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g100);white-space:nowrap;cursor:pointer">Comercial <span class="rsa" id="rsa1">↕</span></th>
+            <th style="padding:9px 13px;text-align:center;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g100);white-space:nowrap;width:40px"></th>
+            <th onclick="sortReclamar(2)" style="padding:9px 13px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#fca5a5;white-space:nowrap;cursor:pointer">Vencido A <span class="rsa" id="rsa2">↕</span></th>
+            <th onclick="sortReclamar(3)" style="padding:9px 13px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#fca5a5;white-space:nowrap;cursor:pointer">Vencido B <span class="rsa" id="rsa3">↕</span></th>
+            <th onclick="sortReclamar(4)" style="padding:9px 13px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#fde68a;white-space:nowrap;cursor:pointer;background:var(--g600)">Importe Cheques <span class="rsa" id="rsa4">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="reclamar-tbody"></tbody>
+        <tfoot id="reclamar-tfoot"></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="tab-resolver" class="tabcontent">
+  <!-- KPI cards -->
+  <div id="resolver-kpi" style="display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap"></div>
+  <!-- Filters -->
+  <div class="frow">
+    <div class="fgrp"><span class="flbl">Estado</span><select id="rv-estado" onchange="renderResolver()"><option value="">Todos</option><option>Vencido</option><option>A Vencer</option></select></div>
+    <div class="fgrp"><span class="flbl">Archivo</span><select id="rv-source" onchange="renderResolver()"><option value="">A y B</option><option>A</option><option>B</option></select></div>
+    <button class="btnclr" onclick="document.getElementById('rv-estado').value='';document.getElementById('rv-source').value='';renderResolver()">✕ Limpiar</button>
+  </div>
+  <div class="twrap">
+    <div class="tinfo"><span id="rv-count">—</span><span>Clientes pendientes de resolución</span></div>
+    <div class="tscroll">
+      <table>
+        <thead><tr>
+          <th onclick="sortResolver(0)">Cliente <span class="sa" id="rsa0">↕</span></th>
+          <th onclick="sortResolver(1)">Comercial <span class="sa" id="rsa1">↕</span></th>
+          <th onclick="sortResolver(2)">Comprobante <span class="sa" id="rsa2">↕</span></th>
+          <th onclick="sortResolver(3)">F. Facturación <span class="sa" id="rsa3">↕</span></th>
+          <th onclick="sortResolver(4)">F. Vencimiento <span class="sa" id="rsa4">↕</span></th>
+          <th onclick="sortResolver(5)">Días Vencidos <span class="sa" id="rsa5">↕</span></th>
+          <th onclick="sortResolver(6)">Estado <span class="sa" id="rsa6">↕</span></th>
+          <th onclick="sortResolver(7)" style="text-align:right">Importe <span class="sa" id="rsa7">↕</span></th>
+          <th onclick="sortResolver(8)" style="text-align:right">Saldo A <span class="sa" id="rsa8">↕</span></th>
+          <th onclick="sortResolver(9)" style="text-align:right">Saldo B <span class="sa" id="rsa9">↕</span></th>
+          <th onclick="sortResolver(10)" style="text-align:right">Saldo Total <span class="sa" id="rsa10">↕</span></th>
+          <th onclick="sortResolver(11)">Arch. <span class="sa" id="rsa11">↕</span></th>
+        </tr></thead>
+        <tbody id="resolver-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="tab-excluidos" class="tabcontent">
+  <p style="font-size:12px;color:var(--n400);margin-bottom:14px">
+    Clientes excluidos del informe principal. El saldo es la suma neta de todos sus comprobantes en A y B.
+  </p>
+  <div class="twrap">
+    <div style="padding:9px 16px;font-size:12px;color:var(--n400);border-bottom:1px solid var(--n100);display:flex;justify-content:space-between;background:var(--n50)">
+      <span id="excl-count">—</span><span>Solo clientes con saldo distinto de cero</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:var(--g700)">
+            <th onclick="sortExcl(0)" style="padding:9px 13px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g100);white-space:nowrap;cursor:pointer">Cliente <span class="exsa" id="exsa0">↕</span></th>
+            <th onclick="sortExcl(1)" style="padding:9px 13px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g100);white-space:nowrap;cursor:pointer">Saldo A <span class="exsa" id="exsa1">↕</span></th>
+            <th onclick="sortExcl(2)" style="padding:9px 13px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g100);white-space:nowrap;cursor:pointer">Saldo B <span class="exsa" id="exsa2">↕</span></th>
+            <th onclick="sortExcl(3)" style="padding:9px 13px;text-align:right;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g100);white-space:nowrap;cursor:pointer;background:var(--g600)">Total Deuda <span class="exsa" id="exsa3">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="excl-tbody"></tbody>
+        <tfoot id="excl-tfoot"></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+var INITIAL = [];
+var EXCLUDED = new Set([
+  'AGENCIA DE RECAUDACION Y CONTROL ADUANERO',
+  'BUENOS AIRES VALORES S.A.',
+  'CAMPOS Y GANADOS S A REMATES COMISIONES Y CONSIGNACIONES',
+  'CARLOS TOMAS CASTRO SUGASTI',
+  'CASTRO TOMAS',
+  'CONSUMIDOR FINAL',
+  'DHF S.A',
+  'DISTRIBUIDORA NAS S.R.L. - FLETES',
+  'ENTIVOX SA',
+  'FLETES',
+  'FRANCISCO CIRO CASTRO SUGASTI',
+  'FRANCISCO NAHUEL ADIMARO',
+  'INDUSTRIA CUENTA 2',
+  'JAVIER ALEJANDRO MEDINA',
+  'MERCADO AGROGANADERO SA',
+  'MUNICIPALIDAD DE SAN ISIDRO',
+  'NICOLAS PULLEIRO',
+  'OSDE ORGANIZACION DE SERVICIOS DIRECTOS EMPRESARIOS',
+  'POTENCIAR SGR',
+  'PROVINCIA LEASING SA',
+  'SOLUCIONES EN ETIQUETAS S.A.',
+  'SWISS MEDICAL S A',
+  'TELEFONICA MOVILES ARGENTINA SOCIEDAD ANONIMA',
+  'TF CARNES S.A.',
+  'TRADE FOOD S.A',
+  'TRANSCONT S R L',
+  'YPF SOCIEDAD ANONIMA',
+  '1CLARA S',
+  'ADRIAN CALI',
+  'AGUSTIN CAJAS',
+  'AGUSTINA PULLEIRO',
+  'ALEJANDRO MARTINEZ',
+  'ALEJANDRO OSVALDO PULLEIRO',
+  'ANA FRACICA',
+  'CLAUDIO CASTAÑEDA (TF PLANTA)',
+  'COMISIONES PEDIDOS YA',
+  'DAMIAN MOTOQUERO',
+  'DAMIAN SOBRINO DE PIRI',
+  'DISTRIBUIDORA NAS - COMISIONES',
+  'DISTRIBUIDORA NAS - FLETES',
+  'ELIAN TF',
+  'ENDERLIS ROMERO',
+  'ENZO ALGAÑARAZ',
+  'FEDE FRIGO',
+  'FERNANDO MARICHALAR',
+  'FIORELLA MOUTTET (TRADE FOOD)',
+  'FLOR GARCIA',
+  'FRANCISCO CANEPA',
+  'FRANCISCO CAPOZZI',
+  'FRANCISCO RAVETTI TRADE FOOD',
+  'FRANCO ADIMARO (FRIGO)',
+  'GASTON IRIGOYEN',
+  'GESTIONES ADUANERAS Y SANITARIAS',
+  'GINTER',
+  'HERNAN GONZALEZ (TRADE FOOD)RRHH',
+  'INDUSTRIA CARNICA DEL OESTE SRL',
+  'JUAN PABLO DIAZ (MOTO)',
+  'JUAN SOLIS',
+  'KAREN SENASSA (FRIGO)',
+  'KUKO',
+  'LEA DE CARLO (PAJARITO)',
+  'MARIA SOFIA AMESTOY',
+  'MARIANO GIGENA (TRADE FOOD)',
+  'MARTIN BILBAO',
+  'MARTIN ROHNER (TRADE FOOD)',
+  'MARTIN RUOCCO',
+  'MILAM HUBER',
+  'NACHO CAZENAVE TRADEFOOD',
+  'NICOLAS BINAGUI',
+  'PANCHO ADIMARO',
+  'RAMIRO FREUE',
+  'RAMIRO MIGUEL PARODI',
+  'SANTIAGO CHUBURU',
+  'SONIA YBARES TRADE FOOD',
+  'TFC LA CARNICERIA',
+  'VARIOS CANGALLO',
+  'TARDITI DIEGO ALBERTO',
+  // Nombres reales en archivos (distintos a los del listado)
+  'GASTON EZEQUIEL IRIGOYEN',
+  'HERNAN GONZALEZ',
+  'MARTIN ROHNER',
+  'IGNACIO CAZENAVE',
+  'MARIANO GIGENA',
+  'MARIANO IVAN GIGENA',
+  'FIORELLA MOUTTET',
+  'FRANCISCO JOSE CANEPA',
+  'FRANCISCO JOSÉ CANEPA',
+  'FRANCISCO RAVETTI ESCUDERO',
+  'FRANCISCO MIGUEL RAVETTI ESCUDERO',
+  'YBARES SONIA LORENA',
+  'ENZO GUSTAVO ALGAÑARAZ NASTA',
+  'UNO SUPERMERCADOS SA',
+  'TITO PEREZ E HIJO S.A.',
+  'DIEGO ALBERTO TARDITI',
+  'TITO PEREZ',
+  'SERVICIOS CARNICOS DEL SUR',
+  'TARDITI',
+  'DELTACAR S A',
+  'CASNEM S.A.S.',
+  'GUIDO JORGE MUÑOZ',
+  'ROBOL LUIS MARIA',
+  'LUCIANO RINALDI (LUCHO)',
+  'SODECAR SA',
+  'SOCIEDAD ANONIMA CARNES PAMPEANAS SA',
+  'CARNES PAMPEANAS SA',
+  'FRIGORIFICO ALBERDI SOCIEDAD ANONIMA',
+  'GANADERA GRANADA S.A.',
+  'ETCHEVEHERE RURAL S. R. L.',
+  'HACIENDAS DEL NORTE',
+  'GLOBALWING',
+  'VILLAMAGNA HNOS SRL',
+  'SENASA (FRIGO)',
+  'LUCANI S.R.L.',
+  'ORELLA S.R.L.',
+  '5L SA',
+  'COMERCIALIZADORA DE CARNES ROMERO VACA S.A.',
+  'LA MERIDIONAL CIA ARG DE SEGUROS S A',
+  'MARCELO RAUL LAURO',
+  'NETLATIN S.R.L.',
+  'P & Z S.A.',
+  'SUMATIK SRL',
+  'MARIANO BLUMENFELD'
+].map(function(s){return s.trim().toUpperCase();}));
+
+function isExcluded(name){
+  if(!name||name==='NaN')return true;
+  var n=name.trim().toUpperCase();
+  if(EXCLUDED.has(n))return true;
+  // Match parcial para apellidos que pueden venir con distintos nombres
+  if(n.indexOf('TARDITI')>-1)return true;
+  if(n.indexOf('DELTACAR')>-1)return true;
+  if(n.indexOf('CASNEM')>-1)return true;
+  if(n.indexOf('GUIDO JORGE MU')>-1)return true;
+  if(n.indexOf('ROBOL')>-1)return true;
+  if(n.indexOf('RINALDI')>-1)return true;
+  if(n.indexOf('SODECAR')>-1)return true;
+  if(n.indexOf('PAMPEANAS')>-1)return true;
+  if(n.indexOf('ALBERDI')>-1)return true;
+  if(n.indexOf('GANADERA GRANADA')>-1)return true;
+  if(n.indexOf('ETCHEVEHERE')>-1)return true;
+  if(n.indexOf('HACIENDAS DEL NORTE')>-1)return true;
+  if(n.indexOf('GLOBALWING')>-1)return true;
+  if(n.indexOf('VILLAMAGNA')>-1)return true;
+  if(n.indexOf('SENASA')>-1)return true;
+  if(n.indexOf('LUCANI')>-1)return true;
+  if(n.indexOf('ORELLA')>-1)return true;
+  if(n.indexOf('ROMERO VACA')>-1)return true;
+  if(n.indexOf('LA MERIDIONAL')>-1)return true;
+  if(n.indexOf('MARCELO RAUL LAURO')>-1)return true;
+  if(n.indexOf('NETLATIN')>-1)return true;
+  if(n.indexOf('SUMATIK')>-1)return true;
+  if(n.indexOf('BLUMENFELD')>-1)return true;
+  return false;
+}
+
+var RESOLVER_CLIENTS = new Set([
+  'HENAN HENG YE TRADE CO., LTD ADD',
+  'FRESH EXPRESS KUWAIT',
+  'GONZALO BADANO',
+  'PATAGONIA VIANDAS Y CATERING S.R.L.',
+  'SUPERMERCADOS MAYORISTAS YAGUAR SOCIEDAD ANONIMA',
+  'SUPERMERCADOS MAYORISTAS YAGUAR SOCIEDA',
+  'VITAFIL S.A.',
+  'CARDINAL ALIMENTARIA',
+  'CIA CARDINAL ALIMENTARIA S.A.',
+  'CIA CARDINAL ALIMENTARIA SA',
+  'CARDINAL ALIMENTARIA S.A.',
+  'ROJAS VERA ALEX NAHUEL',
+  'VENTA ZONA NORTE',
+  'JOCKEY',
+  'OFICINA TF'
+].map(function(s){return s.trim().toUpperCase();}));
+
+function isResolver(name){
+  if(!name)return false;
+  var n=name.trim().toUpperCase();
+  if(RESOLVER_CLIENTS.has(n))return true;
+  if(n.indexOf('HENAN HENG')>-1)return true;
+  if(n.indexOf('FRESH EXPRESS')>-1)return true;
+  if(n.indexOf('BADANO')>-1)return true;
+  if(n.indexOf('PATAGONIA VIANDAS')>-1)return true;
+  if(n.indexOf('YAGUAR')>-1)return true;
+  if(n.indexOf('VITAFIL')>-1)return true;
+  if(n.indexOf('CARDINAL')>-1)return true;
+  if(n.indexOf('ROJAS VERA')>-1)return true;
+  if(n.indexOf('VENTA ZONA NORTE')>-1)return true;
+  if(n.indexOf('JOCKEY')>-1)return true;
+  if(n.indexOf('OFICINA TF')>-1)return true;
+  return false;
+}
+
+var allData      = INITIAL.filter(function(r){return !isExcluded(r['Razón social'])&&!isResolver(r['Razón social']);}).map(function(r){return Object.assign({},r);});
+var rawData      = INITIAL.map(function(r){return Object.assign({},r);}); // todos sin filtrar (para excluidos)
+var resolverData = INITIAL.filter(function(r){return isResolver(r['Razón social']);}).map(function(r){return Object.assign({},r);}); // solo clientes a resolver
+var clientMap = {};
+var chequesMap = {}; // cliente -> 'Si' | 'No'
+var sortCol = 4, sortAsc = true;
+var today = new Date(); today.setHours(0,0,0,0);
+
+function fmtDate(s){
+  if(!s||s==='')return'—';
+  var p=s.split('-'); return p[2]+'/'+p[1]+'/'+p[0];
+}
+function fmtMoney(v){
+  return new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',minimumFractionDigits:2}).format(v);
+}
+function daysDiff(s){
+  if(!s)return 0;
+  return Math.round((today - new Date(s+'T00:00:00'))/86400000);
+}
+function estado(s){return daysDiff(s)>0?'Vencido':'A Vencer';}
+
+
+
+function computeSaldos(){
+  var sA={},sB={};
+  allData.forEach(function(r){
+    var k=r['Razón social'];
+    if(r.source==='A') sA[k]=(sA[k]||0)+r.Importe;
+    else               sB[k]=(sB[k]||0)+r.Importe;
+  });
+  return{sA:sA,sB:sB};
+}
+
+function renderKPIs(){
+  var vA=0,vB=0,avA=0,avB=0,apA=0,apB=0;
+  allData.forEach(function(r){
+    if(r.Importe<0){
+      if(r.source==='A')apA+=r.Importe; else apB+=r.Importe;
+      return; // no suma en vencido/a vencer
+    }
+    var v=daysDiff(r['Fecha Vencimiento'])>0;
+    if(r.source==='A'){if(v)vA+=r.Importe;else avA+=r.Importe;}
+    else{if(v)vB+=r.Importe;else avB+=r.Importe;}
+  });
+  var secs=[
+    {lbl:'A Aplicar',    vals:[apA,apB,apA+apB],           cls:'blue'},
+    {lbl:'Vencido',      vals:[vA,vB,vA+vB],               cls:'red'},
+    {lbl:'A Vencer',     vals:[avA,avB,avA+avB],           cls:'amber'},
+    {lbl:'Total a Cobrar',vals:[vA+avA,vB+avB,vA+vB+avA+avB],cls:'green'}
+  ];
+  var srcs=[['Archivo A','a'],['Archivo B','b'],['Total','t']];
+  var h='';
+  secs.forEach(function(s){
+    h+='<div class="kpigroup"><span class="kpilabel">'+s.lbl+'</span><div class="kpidiv"></div></div>';
+    s.vals.forEach(function(v,i){
+      h+='<div class="kpicard"><div class="kpititle">'+s.lbl+'</div>'+
+         '<span class="kpisrc '+srcs[i][1]+'">'+srcs[i][0]+'</span>'+
+         '<div class="kpival '+s.cls+'">'+fmtMoney(v)+'</div></div>';
+    });
+  });
+  document.getElementById('kpigrid').innerHTML=h;
+}
+
+function buildSelects(){
+  var sc=document.getElementById('f-cliente');
+  var cv=sc.value;
+  sc.innerHTML='<option value="">Todos</option>';
+  var names=[...new Set(allData.map(function(r){return r['Razón social'];}))] .sort();
+  names.forEach(function(n){var o=document.createElement('option');o.value=o.textContent=n;sc.appendChild(o);});
+  sc.value=cv;
+
+  var sm=document.getElementById('f-comercial');
+  var mv=sm.value;
+  sm.innerHTML='<option value="">Todos</option>';
+  var coms=[...new Set(Object.values(clientMap).filter(Boolean))].sort();
+  coms.forEach(function(c){var o=document.createElement('option');o.value=o.textContent=c;sm.appendChild(o);});
+  sm.value=mv;
+}
+
+function getFiltered(){
+  var fC=document.getElementById('f-cliente').value;
+  var fM=document.getElementById('f-comercial').value;
+  var fE=document.getElementById('f-estado').value;
+  var fS=document.getElementById('f-source').value;
+  return allData.filter(function(r){
+    if(fC&&r['Razón social']!==fC)return false;
+    if(fM&&(clientMap[r['Razón social']]||'')!==fM)return false;
+    if(fE&&estado(r['Fecha Vencimiento'])!==fE)return false;
+    if(fS&&r.source!==fS)return false;
+    return true;
+  });
+}
+
+function renderTable(){
+  var s=computeSaldos(); var sA=s.sA,sB=s.sB;
+  var rows=getFiltered();
+  rows=rows.slice().sort(function(a,b){
+    var va,vb;
+    if(sortCol===0){va=a['Razón social'];vb=b['Razón social'];}
+    else if(sortCol===1){va=clientMap[a['Razón social']]||'';vb=clientMap[b['Razón social']]||'';}
+    else if(sortCol===2){va=a['Número de Comprobante'];vb=b['Número de Comprobante'];}
+    else if(sortCol===3){va=a['Fecha']||'';vb=b['Fecha']||'';}
+    else if(sortCol===4){va=a['Fecha Vencimiento']||'';vb=b['Fecha Vencimiento']||'';}
+    else if(sortCol===5){va=daysDiff(a['Fecha Vencimiento']);vb=daysDiff(b['Fecha Vencimiento']);}
+    else if(sortCol===6){va=estado(a['Fecha Vencimiento']);vb=estado(b['Fecha Vencimiento']);}
+    else if(sortCol===7){va=a.Importe;vb=b.Importe;}
+    else if(sortCol===8){va=sA[a['Razón social']]||0;vb=sA[b['Razón social']]||0;}
+    else if(sortCol===9){va=sB[a['Razón social']]||0;vb=sB[b['Razón social']]||0;}
+    else if(sortCol===10){va=(sA[a['Razón social']]||0)+(sB[a['Razón social']]||0);vb=(sA[b['Razón social']]||0)+(sB[b['Razón social']]||0);}
+    else{va=a.source;vb=b.source;}
+    if(va<vb)return sortAsc?-1:1;
+    if(va>vb)return sortAsc?1:-1;
+    return 0;
+  });
+  document.getElementById('tblcount').textContent=rows.length+' registros';
+  var tb=document.getElementById('tbody');
+  tb.innerHTML='';
+  rows.forEach(function(r){
+    var d=daysDiff(r['Fecha Vencimiento']);
+    var est=d>0?'Vencido':'A Vencer';
+    var saA=sA[r['Razón social']]||0;
+    var saB=sB[r['Razón social']]||0;
+    var saT=saA+saB;
+    var com=clientMap[r['Razón social']]||'—';
+    var dc=d>0?'var(--red)':'var(--g600)';
+    var tr=document.createElement('tr');
+    tr.innerHTML=
+      '<td style="max-width:190px;overflow:hidden;text-overflow:ellipsis;font-weight:500" title="'+r['Razón social']+'">'+r['Razón social']+'</td>'+
+      '<td style="color:var(--n600)">'+com+'</td>'+
+      '<td class="mono">'+r['Número de Comprobante']+'</td>'+
+      '<td class="date">'+fmtDate(r['Fecha'])+'</td>'+
+      '<td class="date">'+fmtDate(r['Fecha Vencimiento'])+'</td>'+
+      '<td class="num" style="color:'+dc+';font-weight:600">'+Math.abs(d)+'</td>'+
+      '<td><span class="badge '+(est==='Vencido'?'bv':'bav')+'">'+est+'</span></td>'+
+      '<td class="num">'+fmtMoney(r.Importe)+'</td>'+
+      '<td class="num" style="color:'+(saA>0?'var(--red)':'var(--g600)')+'">'+fmtMoney(saA)+'</td>'+
+      '<td class="num" style="color:'+(saB>0?'var(--red)':'var(--g600)')+'">'+fmtMoney(saB)+'</td>'+
+      '<td class="num" style="font-weight:700;color:'+(saT>0?'var(--red)':'var(--g600)')+'">'+fmtMoney(saT)+'</td>'+
+      '<td><span class="badge '+(r.source==='A'?'ba':'bb')+'">'+r.source+'</span></td>';
+    tb.appendChild(tr);
+  });
+}
+
+
+function doSort(col){
+  sortAsc=(sortCol===col)?!sortAsc:true; sortCol=col;
+  document.querySelectorAll('thead th').forEach(function(th,i){
+    th.classList.toggle('sorted',i===col);
+    var s=th.querySelector('.sa');
+    if(s)s.textContent=i===col?(sortAsc?'↑':'↓'):'↕';
+  });
+  renderTable();
+}
+
+var esSortCol=0, esSortAsc=true;
+
+function buildEstadoData(){
+  var map={};
+  allData.forEach(function(r){
+    var k=r['Razón social'];
+    if(isExcluded(k)||isResolver(k))return; // doble seguro
+    if(!map[k])map[k]={vA:0,vB:0,avA:0,avB:0,aplicar:0};
+    if(r.Importe<0){
+      map[k].aplicar+=r.Importe; // negativos: suma aparte, no entra en vencido/a vencer
+      return;
+    }
+    var vencido=daysDiff(r['Fecha Vencimiento'])>0;
+    if(r.source==='A'){if(vencido)map[k].vA+=r.Importe;else map[k].avA+=r.Importe;}
+    else{if(vencido)map[k].vB+=r.Importe;else map[k].avB+=r.Importe;}
+  });
+  return map;
+}
+
+// ── Multi-select clientes (Estado por Cliente) ──────────────────────────────
+var msSelected = new Set(); // vacío = todos
+var msAllClients = [];
+
+function buildMsOptions(){
+  msAllClients = Object.keys(buildEstadoData()).sort();
+  // Si msSelected está vacío, significa "todos"
+  filterMsOptions();
+  updateMsLabel();
+}
+
+function filterMsOptions(){
+  var q=(document.getElementById('ms-search')||{value:''}).value.toLowerCase();
+  var container=document.getElementById('ms-options');
+  if(!container)return;
+  container.innerHTML='';
+  msAllClients.filter(function(c){return !q||c.toLowerCase().indexOf(q)>-1;}).forEach(function(c){
+    var checked = msSelected.size===0 ? true : msSelected.has(c);
+    var div=document.createElement('div');
+    div.style.cssText='padding:6px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px';
+    div.innerHTML='<input type="checkbox" '+(checked?'checked':'')+' style="cursor:pointer"> <span style="flex:1">'+c+'</span>';
+    div.querySelector('input').addEventListener('change',function(){
+      if(msSelected.size===0){
+        // Estábamos en "todos", ahora desmarcamos uno = seleccionamos todos menos ese
+        msAllClients.forEach(function(x){msSelected.add(x);});
+      }
+      if(this.checked) msSelected.add(c); else msSelected.delete(c);
+      // Si están todos seleccionados, volvemos a "todos"
+      if(msSelected.size===msAllClients.length) msSelected.clear();
+      updateMsLabel();
+      renderEstado();
+    });
+    div.addEventListener('click',function(e){if(e.target.tagName!=='INPUT'){div.querySelector('input').click();}});
+    container.appendChild(div);
+  });
+}
+
+function selectAllMs(all){
+  msSelected.clear();
+  if(!all){
+    // Seleccionar ninguno — seleccionamos solo el primero para forzar filtro vacío
+    // En realidad dejamos el set vacío pero renderEstado retorna 0 rows
+    msAllClients.forEach(function(c){/* no agregar */});
+  }
+  updateMsLabel();
+  filterMsOptions();
+  renderEstado();
+}
+
+function updateMsLabel(){
+  var el=document.getElementById('ms-label');
+  if(!el)return;
+  if(msSelected.size===0) el.textContent='Todos ('+msAllClients.length+')';
+  else el.textContent=msSelected.size+' seleccionado'+(msSelected.size===1?'':'s');
+}
+
+function toggleMultiSelect(){
+  var dd=document.getElementById('ms-dropdown');
+  if(dd.style.display==='none'){
+    dd.style.display='block';
+    buildMsOptions();
+    setTimeout(function(){
+      document.addEventListener('click',closeMsOnOutside);
+    },10);
+  } else {
+    dd.style.display='none';
+  }
+}
+
+function closeMsOnOutside(e){
+  var dd=document.getElementById('ms-dropdown');
+  var trigger=document.getElementById('ms-trigger');
+  if(dd&&!dd.contains(e.target)&&!trigger.contains(e.target)){
+    dd.style.display='none';
+    document.removeEventListener('click',closeMsOnOutside);
+  }
+}
+
+// ── Popup facturas ───────────────────────────────────────────────────────────
+function showFacturasPopup(cliente, tdEl){
+  var rows=allData.filter(function(r){return r['Razón social']===cliente;})
+    .sort(function(a,b){return (a['Fecha Vencimiento']||'').localeCompare(b['Fecha Vencimiento']||'');});
+
+  document.getElementById('popup-title').textContent=cliente;
+  var tb=document.getElementById('popup-tbody');
+  tb.innerHTML='';
+  rows.forEach(function(r){
+    var d=daysDiff(r['Fecha Vencimiento']);
+    var est=d>0?'Vencido':'A Vencer';
+    var tr=document.createElement('tr');
+    tr.style.borderBottom='1px solid #f5f5f5';
+    tr.innerHTML=
+      '<td style="padding:7px 12px;font-size:12px;font-family:monospace">'+r['Número de Comprobante']+'</td>'+
+      '<td style="padding:7px 12px;font-size:12px;white-space:nowrap">'+fmtDate(r['Fecha'])+'</td>'+
+      '<td style="padding:7px 12px;font-size:12px;white-space:nowrap">'+fmtDate(r['Fecha Vencimiento'])+'</td>'+
+      '<td style="padding:7px 12px;text-align:center"><span class="badge '+(est==='Vencido'?'bv':'bav')+'">'+est+'</span></td>'+
+      '<td style="padding:7px 12px;font-size:12px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:'+(r.Importe>0?'var(--red)':'var(--g600)')+'">'+fmtMoney(r.Importe)+'</td>'+
+      '<td style="padding:7px 12px;text-align:center"><span class="badge '+(r.source==='A'?'ba':'bb')+'">'+r.source+'</span></td>';
+    tb.appendChild(tr);
+  });
+
+  // Position popup near the td
+  var popup=document.getElementById('factura-popup');
+  popup.style.display='flex';
+  document.getElementById('popup-overlay').style.display='block';
+
+  // Center on screen
+  popup.style.top='50%';
+  popup.style.left='50%';
+  popup.style.transform='translate(-50%,-50%)';
+}
+
+function closePopup(){
+  document.getElementById('factura-popup').style.display='none';
+  document.getElementById('popup-overlay').style.display='none';
+}
+
+// Estado por Cliente — checkbox state (cliente → bool)
+var estadoChecked = {}; // true = marcado (incluido en métricas)
+
+function toggleAllChecks(checked){
+  document.querySelectorAll('.est-chk').forEach(function(chk){
+    chk.checked=checked;
+    estadoChecked[chk.dataset.cliente]=checked;
+  });
+  renderEstadoKPIs();
+}
+
+function renderEstadoKPIs(){
+  // Suma solo los clientes marcados
+  var vA=0,vB=0,avA=0,avB=0,apA=0,apB=0;
+  var map=buildEstadoData();
+  Object.keys(map).forEach(function(k){
+    if(estadoChecked[k]===false)return; // desmarcado
+    var d=map[k];
+    vA+=d.vA; vB+=d.vB; avA+=d.avA; avB+=d.avB;
+    // aplicar: split A/B from allData
+  });
+  // Para A Aplicar necesitamos A/B por separado
+  allData.forEach(function(r){
+    var k=r['Razón social'];
+    if(estadoChecked[k]===false)return;
+    if(r.Importe<0){
+      if(r.source==='A')apA+=r.Importe; else apB+=r.Importe;
+    }
+  });
+
+  // Grid igual al de Cuentas a Cobrar
+  var secs=[
+    {lbl:'A Aplicar',   vals:[apA,apB,apA+apB],           cls:'blue'},
+    {lbl:'Vencido',     vals:[vA,vB,vA+vB],               cls:'red'},
+    {lbl:'A Vencer',    vals:[avA,avB,avA+avB],           cls:'amber'},
+    {lbl:'Total',       vals:[vA+avA,vB+avB,vA+vB+avA+avB],cls:'green'}
+  ];
+  var srcs=[['Archivo A','a'],['Archivo B','b'],['Total','t']];
+  var h='';
+  secs.forEach(function(s){
+    s.vals.forEach(function(v,i){
+      h+='<div style="background:#fff;padding:14px 16px;display:flex;flex-direction:column;gap:4px">'+
+         '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--n400)">'+s.lbl+' · '+srcs[i][0]+'</div>'+
+         '<div style="font-size:16px;font-weight:700;font-variant-numeric:tabular-nums" class="kpival '+s.cls+'">'+fmtMoney(v)+'</div>'+
+         '</div>';
+    });
+  });
+  var kpiEl=document.getElementById('estado-kpi-grid');
+  if(kpiEl)kpiEl.innerHTML=h;
+
+  // Cuadros neto
+  var netoA=(vA+avA)+apA; // apA es negativo
+  var netoB=(vB+avB)+apB;
+  var netoT=netoA+netoB;
+  var netoEl=document.getElementById('estado-neto-grid');
+  if(netoEl){
+    var ns=[
+      {lbl:'Neto A  (Total A − A Aplicar A)',   v:netoA},
+      {lbl:'Neto B  (Total B − A Aplicar B)',   v:netoB},
+      {lbl:'Neto General',                       v:netoT}
+    ];
+    netoEl.innerHTML=ns.map(function(n){
+      var col=n.v>0?'var(--red)':'var(--g600)';
+      return '<div style="flex:1;min-width:200px;background:var(--g800);color:#fff;border-radius:10px;padding:16px 20px">'+
+        '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;opacity:.65;margin-bottom:6px">'+n.lbl+'</div>'+
+        '<div style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;color:#fff">'+fmtMoney(n.v)+'</div>'+
+        '</div>';
+    }).join('');
+  }
+  // Si el resumen ejecutivo está visible, actualizarlo también
+  if(document.getElementById('tab-resumen')&&document.getElementById('tab-resumen').classList.contains('active'))renderResumen();
+}
+
+// ── renderEstado actualizado con checkboxes, multi-select y popup ──────────────
+function renderEstado(){
+  var fCom=document.getElementById('estado-comercial').value;
+  var map=buildEstadoData();
+  var rows=Object.keys(map).sort().map(function(k){
+    return{cliente:k,comercial:clientMap[k]||'—',vA:map[k].vA,vB:map[k].vB,avA:map[k].avA,avB:map[k].avB,aplicar:map[k].aplicar};
+  }).filter(function(r){
+    if(msSelected.size>0&&!msSelected.has(r.cliente))return false;
+    if(fCom&&r.comercial!==fCom)return false;
+    return true;
+  });
+
+  // Sort
+  rows.sort(function(a,b){
+    var va,vb;
+    if(esSortCol===0){va=a.cliente;vb=b.cliente;}
+    else if(esSortCol===1){va=a.comercial;vb=b.comercial;}
+    else if(esSortCol===2){va=a.vA;vb=b.vA;}
+    else if(esSortCol===3){va=a.vB;vb=b.vB;}
+    else if(esSortCol===4){va=a.avA;vb=b.avA;}
+    else if(esSortCol===5){va=a.avB;vb=b.avB;}
+    else if(esSortCol===6){va=a.vA+a.vB+a.avA+a.avB;vb=b.vA+b.vB+b.avA+b.avB;}
+    else if(esSortCol===7){va=a.aplicar;vb=b.aplicar;}
+    else{va=chequesMap[a.cliente]||'No';vb=chequesMap[b.cliente]||'No';}
+    if(va<vb)return esSortAsc?-1:1;
+    if(va>vb)return esSortAsc?1:-1;
+    return 0;
+  });
+
+  // Init checked state: default true for new clients
+  rows.forEach(function(r){
+    if(!(r.cliente in estadoChecked))estadoChecked[r.cliente]=true;
+  });
+
+  // Update "check all" header checkbox
+  var allChk=document.getElementById('chk-all');
+  if(allChk){
+    var allChecked=rows.every(function(r){return estadoChecked[r.cliente]!==false;});
+    allChk.checked=allChecked;
+  }
+
+  document.getElementById('estado-count').textContent=rows.length+' clientes';
+  var tb=document.getElementById('estado-tbody');
+  tb.innerHTML='';
+  var totVA=0,totVB=0,totAVA=0,totAVB=0,totAplicar=0;
+
+  rows.forEach(function(r){
+    var total=r.vA+r.vB+r.avA+r.avB;
+    totVA+=r.vA; totVB+=r.vB; totAVA+=r.avA; totAVB+=r.avB; totAplicar+=r.aplicar;
+    var checked=estadoChecked[r.cliente]!==false;
+    var tr=document.createElement('tr');
+    tr.style.borderBottom='1px solid #f0f4f0';
+    if(!checked)tr.style.opacity='0.45';
+
+    // Checkbox
+    var tdChk=document.createElement('td');
+    tdChk.style.cssText='padding:6px 10px;text-align:center;vertical-align:middle';
+    var chk=document.createElement('input');
+    chk.type='checkbox';
+    chk.className='est-chk';
+    chk.dataset.cliente=r.cliente;
+    chk.checked=checked;
+    chk.style.cssText='cursor:pointer;width:14px;height:14px;accent-color:var(--g500)';
+    chk.addEventListener('change',function(){
+      estadoChecked[r.cliente]=this.checked;
+      tr.style.opacity=this.checked?'1':'0.45';
+      // Update header checkbox
+      var allC=document.getElementById('chk-all');
+      if(allC){
+        var allRows=document.querySelectorAll('.est-chk');
+        allC.checked=[...allRows].every(function(c){return c.checked;});
+      }
+      renderEstadoKPIs();
+    });
+    tdChk.appendChild(chk);
+    tr.appendChild(tdChk);
+
+    // Cliente clicable
+    var tdCliente=document.createElement('td');
+    tdCliente.style.cssText='padding:8px 13px;font-size:12px;font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;text-decoration:underline dotted var(--g400)';
+    tdCliente.title='Clic para ver facturas de '+r.cliente;
+    tdCliente.textContent=r.cliente;
+    tdCliente.addEventListener('click',function(){showFacturasPopup(r.cliente, tdCliente);});
+    tdCliente.addEventListener('mouseenter',function(){this.style.color='var(--g600)';});
+    tdCliente.addEventListener('mouseleave',function(){this.style.color='';});
+    tr.appendChild(tdCliente);
+
+    var rest=
+      '<td style="padding:8px 13px;font-size:12px;color:var(--n600)">'+r.comercial+'</td>'+
+      cell(r.vA,'red')+
+      cell(r.vB,'red')+
+      cell(r.avA,'amber')+
+      cell(r.avB,'amber')+
+      cellTotal(total)+
+      cellAplicar(r.aplicar)+
+      cellCheques(r.cliente);
+    tr.insertAdjacentHTML('beforeend',rest);
+    tb.appendChild(tr);
+  });
+
+  var totTotal=totVA+totVB+totAVA+totAVB;
+  var tf=document.getElementById('estado-tfoot');
+  tf.innerHTML='<tr style="background:var(--g50);border-top:2px solid var(--g200)">'+
+    '<td></td>'+
+    '<td colspan="2" style="padding:9px 13px;font-size:12px;font-weight:700;color:var(--g700)">TOTAL</td>'+
+    cell(totVA,'red',true)+
+    cell(totVB,'red',true)+
+    cell(totAVA,'amber',true)+
+    cell(totAVB,'amber',true)+
+    cellTotal(totTotal,true)+
+    cellAplicar(totAplicar,true)+
+    '<td></td></tr>';
+
+  renderEstadoKPIs();
+}
+
+function cell(v,type,bold){
+  var col=v>0?(type==='red'?'var(--red)':'var(--amber)'):'var(--g600)';
+  return '<td style="padding:8px 13px;font-size:12px;text-align:right;font-variant-numeric:tabular-nums;color:'+col+';'+(bold?'font-weight:700;':'')+'">'+fmtMoney(v)+'</td>';
+}
+function cellTotal(v,bold){
+  var col=v>0?'var(--red)':'var(--g600)';
+  return '<td style="padding:8px 13px;font-size:12px;text-align:right;font-variant-numeric:tabular-nums;font-weight:700;color:'+col+';background:rgba(20,85,51,.05)">'+fmtMoney(v)+'</td>';
+}
+function cellAplicar(v,bold){
+  // negativos en azul (crédito a favor)
+  var col=v<0?'#2563eb':(v===0?'var(--n300)':'var(--red)');
+  return '<td style="padding:8px 13px;font-size:12px;text-align:right;font-variant-numeric:tabular-nums;color:'+col+';'+(bold?'font-weight:700;':'')+'background:rgba(37,99,235,.04)">'+fmtMoney(v)+'</td>';
+}
+function cellCheques(cliente){
+  var v=chequesMap[cliente]||'No';
+  var col=v==='Si'?'var(--g600)':'var(--n400)';
+  return '<td style="padding:8px 13px;text-align:center;font-size:11px;font-weight:600;color:'+col+'">'+v+'</td>';
+}
+
+function sortEstado(col){
+  esSortAsc=(esSortCol===col)?!esSortAsc:true;
+  esSortCol=col;
+  for(var i=0;i<9;i++){
+    var el=document.getElementById('esa'+i);
+    if(el){el.textContent=i===col?(esSortAsc?'↑':'↓'):'↕';el.style.opacity=i===col?'1':'0.4';}
+  }
+  renderEstado();
+}
+
+function buildEstadoComercialSelect(){
+  var sel=document.getElementById('estado-comercial');
+  if(!sel)return;
+  var cur=sel.value;
+  sel.innerHTML='<option value="">Todos</option>';
+  var coms=[...new Set(Object.values(clientMap).filter(Boolean))].sort();
+  coms.forEach(function(c){var o=document.createElement('option');o.value=o.textContent=c;sel.appendChild(o);});
+  sel.value=cur;
+}
+
+var exclSortCol=3, exclSortAsc=false;
+
+function renderExcluidos(){
+  // Build saldos desde rawData (incluye excluidos, se actualiza al subir archivos)
+  var sA={}, sB={};
+  rawData.forEach(function(r){
+    var k=r['Razón social'];
+    if(!k||k==='NaN'||k==='undefined')return;
+    if(!isExcluded(k))return; // solo excluidos
+    if(r.source==='A') sA[k]=(sA[k]||0)+(r.Importe||0);
+    else               sB[k]=(sB[k]||0)+(r.Importe||0);
+  });
+
+  // Merge keys from both
+  var keys={};
+  Object.keys(sA).forEach(function(k){keys[k]=1;});
+  Object.keys(sB).forEach(function(k){keys[k]=1;});
+
+  var rows=Object.keys(keys).map(function(k){
+    var a=sA[k]||0, b=sB[k]||0;
+    return{cliente:k, sA:a, sB:b, total:a+b};
+  }).filter(function(r){return Math.abs(r.total)>0.005;});
+
+  // Sort
+  rows.sort(function(a,b){
+    var va,vb;
+    if(exclSortCol===0){va=a.cliente;vb=b.cliente;}
+    else if(exclSortCol===1){va=a.sA;vb=b.sA;}
+    else if(exclSortCol===2){va=a.sB;vb=b.sB;}
+    else{va=a.total;vb=b.total;}
+    if(va<vb)return exclSortAsc?-1:1;
+    if(va>vb)return exclSortAsc?1:-1;
+    return 0;
+  });
+
+  document.getElementById('excl-count').textContent=rows.length+' clientes excluidos con saldo';
+
+  var tb=document.getElementById('excl-tbody');
+  tb.innerHTML='';
+  var totA=0,totB=0,totT=0;
+
+  rows.forEach(function(r){
+    totA+=r.sA; totB+=r.sB; totT+=r.total;
+    var colA=r.sA>0?'var(--red)':'var(--g600)';
+    var colB=r.sB>0?'var(--red)':'var(--g600)';
+    var colT=r.total>0?'var(--red)':'var(--g600)';
+    var tr=document.createElement('tr');
+    tr.style.borderBottom='1px solid #f0f4f0';
+    tr.innerHTML=
+      '<td style="padding:8px 13px;font-size:12px;font-weight:500;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+r.cliente+'">'+r.cliente+'</td>'+
+      '<td style="padding:8px 13px;font-size:12px;text-align:right;font-variant-numeric:tabular-nums;color:'+colA+'">'+fmtMoney(r.sA)+'</td>'+
+      '<td style="padding:8px 13px;font-size:12px;text-align:right;font-variant-numeric:tabular-nums;color:'+colB+'">'+fmtMoney(r.sB)+'</td>'+
+      '<td style="padding:8px 13px;font-size:12px;text-align:right;font-variant-numeric:tabular-nums;font-weight:700;color:'+colT+';background:rgba(20,85,51,.04)">'+fmtMoney(r.total)+'</td>';
+    tb.appendChild(tr);
+  });
+
+  // Footer
+  var tf=document.getElementById('excl-tfoot');
+  var cA=totA>0?'var(--red)':'var(--g600)';
+  var cB=totB>0?'var(--red)':'var(--g600)';
+  var cT=totT>0?'var(--red)':'var(--g600)';
+  tf.innerHTML='<tr style="background:var(--g50);border-top:2px solid var(--g200)">'+
+    '<td style="padding:9px 13px;font-size:12px;font-weight:700;color:var(--g700)">TOTAL</td>'+
+    '<td style="padding:9px 13px;font-size:12px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:'+cA+'">'+fmtMoney(totA)+'</td>'+
+    '<td style="padding:9px 13px;font-size:12px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:'+cB+'">'+fmtMoney(totB)+'</td>'+
+    '<td style="padding:9px 13px;font-size:12px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:'+cT+';background:rgba(20,85,51,.04)">'+fmtMoney(totT)+'</td>'+
+    '</tr>';
+}
+
+function sortExcl(col){
+  exclSortAsc=(exclSortCol===col)?!exclSortAsc:true;
+  exclSortCol=col;
+  for(var i=0;i<4;i++){
+    var el=document.getElementById('exsa'+i);
+    if(el){el.textContent=i===col?(exclSortAsc?'↑':'↓'):'↕';el.style.opacity=i===col?'1':'0.4';}
+  }
+  renderExcluidos();
+}
+
+// Elimina de allData los clientes que SOLO tienen importes negativos
+// (nada vencido, nada a vencer, saldo neto <= 0). No los muestra en ninguna pestaña.
+function purgeOnlyNegatives(){
+  // Calcular saldo positivo total por cliente
+  var posSum={};
+  allData.forEach(function(r){
+    var k=r['Razón social'];
+    if(r.Importe>0) posSum[k]=(posSum[k]||0)+r.Importe;
+  });
+  // Filtrar: quedan solo clientes que tienen al menos un importe positivo
+  allData=allData.filter(function(r){
+    return (posSum[r['Razón social']]||0)>0;
+  });
+}
+
+function applyFilters(){renderKPIs();renderTable();}
+function clearFilters(){
+  ['f-cliente','f-comercial','f-estado','f-source'].forEach(function(id){document.getElementById(id).value='';});
+  applyFilters();
+}
+
+var rvSortCol=0, rvSortAsc=true;
+
+function renderResolver(){
+  var fEst=document.getElementById('rv-estado').value;
+  var fSrc=document.getElementById('rv-source').value;
+
+  // Get all rows for resolver clients
+  var rows=resolverData.filter(function(r){
+    if(fSrc&&r.source!==fSrc)return false;
+    return true;
+  });
+
+  // Build client saldos for the Saldo A/B/Total columns
+  var saldoA={},saldoB={};
+  resolverData.forEach(function(r){
+    var k=r['Razón social'];
+    if(r.source==='A')saldoA[k]=(saldoA[k]||0)+r.Importe;
+    else saldoB[k]=(saldoB[k]||0)+r.Importe;
+  });
+
+  // Add computed fields
+  var today2=new Date(); today2.setHours(0,0,0,0);
+  rows=rows.map(function(r){
+    var fv=r['Fecha Vencimiento']?new Date(r['Fecha Vencimiento']):null;
+    var dias=fv?Math.floor((today2-fv)/86400000):null;
+    var vencido=dias!==null&&dias>0;
+    if(fEst==='Vencido'&&!vencido)return null;
+    if(fEst==='A Vencer'&&vencido)return null;
+    var k=r['Razón social'];
+    return Object.assign({},r,{
+      _dias:dias,
+      _vencido:vencido,
+      _sA:saldoA[k]||0,
+      _sB:saldoB[k]||0,
+      _sT:(saldoA[k]||0)+(saldoB[k]||0)
+    });
+  }).filter(Boolean);
+
+  // Sort
+  rows.sort(function(a,b){
+    var va,vb;
+    var cols=[a['Razón social'],a[clientMap[a['Razón social']]||''],a['Número de Comprobante'],a['Fecha'],a['Fecha Vencimiento'],a._dias,a._vencido?'Vencido':'A Vencer',a.Importe,a._sA,a._sB,a._sT,a.source];
+    var colsb=[b['Razón social'],b[clientMap[b['Razón social']]||''],b['Número de Comprobante'],b['Fecha'],b['Fecha Vencimiento'],b._dias,b._vencido?'Vencido':'A Vencer',b.Importe,b._sA,b._sB,b._sT,b.source];
+    va=cols[rvSortCol]||''; vb=colsb[rvSortCol]||'';
+    if(typeof va==='string'){va=va.toLowerCase();vb=vb.toLowerCase();}
+    if(va<vb)return rvSortAsc?-1:1;
+    if(va>vb)return rvSortAsc?1:-1;
+    return 0;
+  });
+
+  // KPI cards
+  var totA=0,totB=0;
+  resolverData.forEach(function(r){
+    if(r.source==='A')totA+=r.Importe;
+    else totB+=r.Importe;
+  });
+  var totG=totA+totB;
+  var kpiEl=document.getElementById('resolver-kpi');
+  var kpiStyle='border-radius:10px;padding:16px 22px;min-width:160px;flex:1;max-width:220px;';
+  kpiEl.innerHTML=
+    '<div style="'+kpiStyle+'background:var(--g700);color:#fff">'+
+      '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:6px">Total A</div>'+
+      '<div style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums">'+fmtMoney(totA)+'</div>'+
+    '</div>'+
+    '<div style="'+kpiStyle+'background:var(--g600);color:#fff">'+
+      '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:6px">Total B</div>'+
+      '<div style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums">'+fmtMoney(totB)+'</div>'+
+    '</div>'+
+    '<div style="'+kpiStyle+'background:var(--g800);color:#fff">'+
+      '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:6px">Total General</div>'+
+      '<div style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums">'+fmtMoney(totG)+'</div>'+
+    '</div>';
+
+  document.getElementById('rv-count').textContent=rows.length+' comprobantes';
+
+  var tb=document.getElementById('resolver-tbody');
+  tb.innerHTML='';
+  rows.forEach(function(r){
+    var badge=r._vencido
+      ?'<span class="badge bv">Vencido</span>'
+      :'<span class="badge bav">A Vencer</span>';
+    var dias=r._dias!==null?(r._vencido?'+'+r._dias+' días':r._dias+' días'):'—';
+    var tr=document.createElement('tr');
+    tr.style.borderBottom='1px solid #f0f4f0';
+    tr.innerHTML=
+      '<td style="padding:7px 11px;font-size:12px;font-weight:500;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis" title="'+r['Razón social']+'">'+r['Razón social']+'</td>'+
+      '<td style="padding:7px 11px;font-size:12px;color:var(--n600)">'+(clientMap[r['Razón social']]||'—')+'</td>'+
+      '<td style="padding:7px 11px;font-size:12px">'+r['Número de Comprobante']+'</td>'+
+      '<td style="padding:7px 11px;font-size:12px;white-space:nowrap">'+fmtDate(r['Fecha'])+'</td>'+
+      '<td style="padding:7px 11px;font-size:12px;white-space:nowrap">'+fmtDate(r['Fecha Vencimiento'])+'</td>'+
+      '<td style="padding:7px 11px;font-size:12px;text-align:center;color:'+(r._vencido?'var(--red)':'var(--g600)')+'">'+dias+'</td>'+
+      '<td style="padding:7px 11px">'+badge+'</td>'+
+      '<td style="padding:7px 11px;font-size:12px;text-align:right;font-variant-numeric:tabular-nums">'+fmtMoney(r.Importe)+'</td>'+
+      '<td style="padding:7px 11px;font-size:12px;text-align:right;font-variant-numeric:tabular-nums;color:var(--g600)">'+fmtMoney(r._sA)+'</td>'+
+      '<td style="padding:7px 11px;font-size:12px;text-align:right;font-variant-numeric:tabular-nums;color:var(--g600)">'+fmtMoney(r._sB)+'</td>'+
+      '<td style="padding:7px 11px;font-size:12px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600">'+fmtMoney(r._sT)+'</td>'+
+      '<td style="padding:7px 11px;text-align:center"><span class="badge '+(r.source==='A'?'ba':'bb')+'">'+r.source+'</span></td>';
+    tb.appendChild(tr);
+  });
+}
+
+function sortResolver(col){
+  rvSortAsc=(rvSortCol===col)?!rvSortAsc:true;
+  rvSortCol=col;
+  for(var i=0;i<12;i++){
+    var el=document.getElementById('rsa'+i);
+    if(el){el.textContent=i===col?(rvSortAsc?'↑':'↓'):'↕';el.style.opacity=i===col?'1':'0.4';}
+  }
+  renderResolver();
+}
+
+// ── Pestaña Reclamar ─────────────────────────────────────────────────────────
+var recSortCol=0, recSortAsc=true;
+
+function buildReclamarData(){
+  var today=new Date(); today.setHours(0,0,0,0);
+  var map={}; // cliente -> {vA, vB, chqImporte, rowsVenc, rowsChq}
+
+  allData.forEach(function(r){
+    var k=r['Razón social'];
+    if(r.Importe<=0)return; // solo positivos
+    var fv=r['Fecha Vencimiento']?new Date(r['Fecha Vencimiento']):null;
+    var ff=r['Fecha']?new Date(r['Fecha']):null;
+    var esVencido=fv&&Math.floor((today-fv)/86400000)>0;
+    var esChequePasado=(chequesMap[k]==='Si')&&ff&&Math.floor((today-ff)/86400000)>5;
+
+    if(!esVencido&&!esChequePasado)return; // no aplica
+
+    if(!map[k])map[k]={vA:0,vB:0,chq:0,rowsVenc:[],rowsChq:[]};
+    if(esVencido){
+      if(r.source==='A')map[k].vA+=r.Importe; else map[k].vB+=r.Importe;
+      map[k].rowsVenc.push(r);
+    }
+    if(esChequePasado&&!esVencido){ // vencido ya se cuenta arriba; cheque solo si no está vencido
+      map[k].chq+=r.Importe;
+      map[k].rowsChq.push(r);
+    }
+    if(esVencido&&esChequePasado){ // está en vencido ya; también suma cheque si aplica
+      map[k].chq+=r.Importe; // doble condición: cuenta en ambos
+      map[k].rowsChq.push(r);
+    }
+  });
+  return map;
+}
+
+function showReclamarPopup(cliente){
+  var map=buildReclamarData();
+  var d=map[cliente];
+  if(!d)return;
+  var rows=[].concat(d.rowsVenc).concat(d.rowsChq.filter(function(r){
+    return !d.rowsVenc.includes(r); // evitar duplicados
+  }));
+  // Usar el mismo popup que Estado por Cliente
+  document.getElementById('popup-title').textContent=cliente;
+  var tb=document.getElementById('popup-tbody');
+  tb.innerHTML='';
+  var today=new Date(); today.setHours(0,0,0,0);
+  rows.forEach(function(r){
+    var fv=r['Fecha Vencimiento']?new Date(r['Fecha Vencimiento']):null;
+    var ff=r['Fecha']?new Date(r['Fecha']):null;
+    var diasVenc=fv?Math.floor((today-fv)/86400000):null;
+    var diasEmis=ff?Math.floor((today-ff)/86400000):null;
+    var esVencido=diasVenc!==null&&diasVenc>0;
+    var esChq=(chequesMap[cliente]==='Si')&&diasEmis!==null&&diasEmis>5;
+    var tags='';
+    if(esVencido)tags+='<span class="badge bv" style="margin-right:3px">Vencido</span>';
+    if(esChq&&!esVencido)tags+='<span class="badge" style="background:#7c3aed;color:#fff;margin-right:3px">Cheque +5d</span>';
+    if(esChq&&esVencido)tags+='<span class="badge" style="background:#7c3aed;color:#fff">Cheque +5d</span>';
+    var tr=document.createElement('tr');
+    tr.style.borderBottom='1px solid #f5f5f5';
+    tr.innerHTML=
+      '<td style="padding:7px 12px;font-size:12px;font-family:monospace">'+r['Número de Comprobante']+'</td>'+
+      '<td style="padding:7px 12px;font-size:12px;white-space:nowrap">'+fmtDate(r['Fecha'])+'</td>'+
+      '<td style="padding:7px 12px;font-size:12px;white-space:nowrap">'+fmtDate(r['Fecha Vencimiento'])+'</td>'+
+      '<td style="padding:7px 12px">'+tags+'</td>'+
+      '<td style="padding:7px 12px;font-size:12px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:var(--red)">'+fmtMoney(r.Importe)+'</td>'+
+      '<td style="padding:7px 12px;text-align:center"><span class="badge '+(r.source==='A'?'ba':'bb')+'">'+r.source+'</span></td>';
+    tb.appendChild(tr);
+  });
+  var popup=document.getElementById('factura-popup');
+  popup.style.display='flex';
+  document.getElementById('popup-overlay').style.display='block';
+  popup.style.top='50%'; popup.style.left='50%';
+  popup.style.transform='translate(-50%,-50%)';
+}
+
+function renderReclamar(){
+  var map=buildReclamarData();
+  var rows=Object.keys(map).map(function(k){
+    var d=map[k];
+    return{cliente:k, comercial:clientMap[k]||'—', vA:d.vA, vB:d.vB, chq:d.chq};
+  });
+
+  // Sort
+  rows.sort(function(a,b){
+    var va,vb;
+    if(recSortCol===0){va=a.cliente;vb=b.cliente;}
+    else if(recSortCol===1){va=a.comercial;vb=b.comercial;}
+    else if(recSortCol===2){va=a.vA;vb=b.vA;}
+    else if(recSortCol===3){va=a.vB;vb=b.vB;}
+    else{va=a.chq;vb=b.chq;}
+    if(va<vb)return recSortAsc?-1:1;
+    if(va>vb)return recSortAsc?1:-1;
+    return 0;
+  });
+
+  document.getElementById('reclamar-count').textContent=rows.length+' clientes a reclamar';
+  var tb=document.getElementById('reclamar-tbody');
+  tb.innerHTML='';
+  var totVA=0,totVB=0,totChq=0;
+
+  window._reclamarRows = rows; // store for carta modal
+
+  rows.forEach(function(r, idx){
+    totVA+=r.vA; totVB+=r.vB; totChq+=r.chq;
+    var tr=document.createElement('tr');
+    tr.style.borderBottom='1px solid #f0f4f0';
+    tr.style.cursor='default';
+
+    var tdC=document.createElement('td');
+    tdC.style.cssText='padding:8px 13px;font-size:12px;font-weight:500;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;text-decoration:underline dotted var(--g400)';
+    tdC.title='Clic para ver comprobantes de '+r.cliente;
+    tdC.textContent=r.cliente;
+    tdC.addEventListener('click',function(){showReclamarPopup(r.cliente);});
+    tdC.addEventListener('mouseenter',function(){this.style.color='var(--g600)';});
+    tdC.addEventListener('mouseleave',function(){this.style.color='';});
+    tr.appendChild(tdC);
+
+    // Carta button cell
+    var tdLetter=document.createElement('td');
+    tdLetter.style.cssText='padding:8px 6px;text-align:center';
+    var btnLetter=document.createElement('button');
+    btnLetter.innerHTML='✉️';
+    btnLetter.title='Redactar reclamo para '+r.cliente;
+    btnLetter.style.cssText='background:none;border:none;cursor:pointer;font-size:16px;padding:2px 4px;border-radius:4px;transition:background .15s';
+    btnLetter.addEventListener('mouseenter',function(){this.style.background='var(--g100)';});
+    btnLetter.addEventListener('mouseleave',function(){this.style.background='none';});
+    (function(i){btnLetter.addEventListener('click',function(e){e.stopPropagation();abrirCartaReclamar(i);});})(idx);
+    tdLetter.appendChild(btnLetter);
+    tr.appendChild(tdLetter);
+
+    tr.insertAdjacentHTML('beforeend',
+      '<td style="padding:8px 13px;font-size:12px;color:var(--n600)">'+r.comercial+'</td>'+
+      (r.vA>0?'<td style="padding:8px 13px;font-size:12px;text-align:right;font-variant-numeric:tabular-nums;color:var(--red);font-weight:600">'+fmtMoney(r.vA)+'</td>':'<td style="padding:8px 13px;font-size:12px;text-align:right;color:var(--n300)">—</td>')+
+      (r.vB>0?'<td style="padding:8px 13px;font-size:12px;text-align:right;font-variant-numeric:tabular-nums;color:var(--red);font-weight:600">'+fmtMoney(r.vB)+'</td>':'<td style="padding:8px 13px;font-size:12px;text-align:right;color:var(--n300)">—</td>')+
+      (r.chq>0?'<td style="padding:8px 13px;font-size:12px;text-align:right;font-variant-numeric:tabular-nums;color:#7c3aed;font-weight:600;background:rgba(124,58,237,.04)">'+fmtMoney(r.chq)+'</td>':'<td style="padding:8px 13px;font-size:12px;text-align:right;color:var(--n300);background:rgba(124,58,237,.04)">—</td>')
+    );
+    tb.appendChild(tr);
+  });
+
+  var tf=document.getElementById('reclamar-tfoot');
+  tf.innerHTML='<tr style="background:var(--g50);border-top:2px solid var(--g200)">'+
+    '<td colspan="3" style="padding:9px 13px;font-size:12px;font-weight:700;color:var(--g700)">TOTAL</td>'+
+    '<td style="padding:9px 13px;font-size:12px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:var(--red)">'+fmtMoney(totVA)+'</td>'+
+    '<td style="padding:9px 13px;font-size:12px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:var(--red)">'+fmtMoney(totVB)+'</td>'+
+    '<td style="padding:9px 13px;font-size:12px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:#7c3aed;background:rgba(124,58,237,.04)">'+fmtMoney(totChq)+'</td>'+
+    '</tr>';
+}
+
+function sortReclamar(col){
+  recSortAsc=(recSortCol===col)?!recSortAsc:true;
+  recSortCol=col;
+  for(var i=0;i<5;i++){
+    var el=document.getElementById('rsa'+i);
+    if(el){el.textContent=i===col?(recSortAsc?'↑':'↓'):'↕';el.style.opacity=i===col?'1':'0.4';}
+  }
+  renderReclamar();
+}
+
+// ── Excel Export por Comercial ────────────────────────────────────────────
+function safeSheetName(name, used){
+  var s=(name||'Sin asignar').replace(/[\\\/\?\*\[\]\:]/g,'-').substring(0,28);
+  var base=s, n=2;
+  while(used.has(s)){s=base.substring(0,25)+' '+n++;}
+  used.add(s);
+  return s;
+}
+
+function exportarEstadoExcel(){
+  var map=buildEstadoData();
+  var allKeys=Object.keys(map);
+  if(allKeys.length===0){alert('Cargá los archivos primero.');return;}
+
+  var HEADER_COLOR='145533';
+  var SUBHEADER_COLOR='1e7a49';
+  var NUM_FMT='#,##0.00';
+
+  // Build full detail per client
+  var porCliente={};
+  allData.forEach(function(r){
+    var k=r['Razón social'];
+    if(!porCliente[k]) porCliente[k]={
+      cliente:k, comercial:clientMap[k]||'Sin asignar',
+      vA:0,avA:0,vB:0,avB:0,apA:0,apB:0,detalles:[]
+    };
+    var dias=daysDiff(r['Fecha Vencimiento']);
+    if(r.Importe>0){
+      if(r.source==='A'){if(dias>0)porCliente[k].vA+=r.Importe;else porCliente[k].avA+=r.Importe;}
+      else{if(dias>0)porCliente[k].vB+=r.Importe;else porCliente[k].avB+=r.Importe;}
+    } else {
+      if(r.source==='A')porCliente[k].apA+=r.Importe; else porCliente[k].apB+=r.Importe;
+    }
+    porCliente[k].detalles.push({
+      comprobante:r['Número de Comprobante'], detalle:r['Detalle']||'',
+      fecha:r['Fecha'], vencimiento:r['Fecha Vencimiento'],
+      dias:daysDiff(r['Fecha Vencimiento']),
+      estado:daysDiff(r['Fecha Vencimiento'])>0?'Vencido':'A Vencer',
+      importe:r.Importe, archivo:r.source
+    });
+  });
+
+  var rows=Object.values(porCliente)
+    .filter(function(r){return (r.vA+r.avA+r.vB+r.avB)>0;})
+    .sort(function(a,b){return a.cliente.localeCompare(b.cliente);});
+
+  // Group by comercial
+  var byComercial={};
+  rows.forEach(function(r){
+    var k=r.comercial||'Sin asignar';
+    if(!byComercial[k])byComercial[k]=[];
+    byComercial[k].push(r);
+  });
+
+  var today=new Date();
+  var dd=String(today.getDate()).padStart(2,'0');
+  var mm=String(today.getMonth()+1).padStart(2,'0');
+  var yyyy=today.getFullYear();
+  var fecha=dd+mm+yyyy;
+
+  var wbQueue=[];
+  Object.keys(byComercial).sort().forEach(function(comercial){
+    var clientes=byComercial[comercial];
+    var wb=XLSX.utils.book_new();
+    var usedNames=new Set();
+
+    // ── RESUMEN ──────────────────────────────────────────────────────
+    var resData=[['RESUMEN - '+comercial.toUpperCase()],[],
+      ['Cliente','Vencido A','A Vencer A','Vencido B','A Vencer B','TOTAL Deuda','A Aplicar']];
+    var tVA=0,tAVA=0,tVB=0,tAVB=0,tT=0,tAp=0;
+    clientes.forEach(function(r){
+      var total=r.vA+r.avA+r.vB+r.avB;
+      tVA+=r.vA;tAVA+=r.avA;tVB+=r.vB;tAVB+=r.avB;tT+=total;tAp+=r.apA+r.apB;
+      resData.push([r.cliente,r.vA,r.avA,r.vB,r.avB,total,r.apA+r.apB]);
+    });
+    resData.push(['TOTAL',tVA,tAVA,tVB,tAVB,tT,tAp]);
+
+    var wsRes=XLSX.utils.aoa_to_sheet(resData);
+    wsRes['!cols']=[{wch:45},{wch:16},{wch:16},{wch:16},{wch:16},{wch:16},{wch:16}];
+    wsRes['!merges']=[{s:{r:0,c:0},e:{r:0,c:6}}];
+    for(var c=0;c<7;c++){
+      var a0=XLSX.utils.encode_cell({r:0,c});
+      if(!wsRes[a0])wsRes[a0]={v:''};
+      wsRes[a0].s={font:{bold:true,color:{rgb:'FFFFFF'},sz:13},fill:{patternType:'solid',fgColor:{rgb:HEADER_COLOR}},alignment:{vertical:'center'}};
+      var a2=XLSX.utils.encode_cell({r:2,c});
+      if(!wsRes[a2])wsRes[a2]={v:''};
+      wsRes[a2].s={font:{bold:true,color:{rgb:'FFFFFF'}},fill:{patternType:'solid',fgColor:{rgb:SUBHEADER_COLOR}},alignment:{horizontal:c>=1?'right':'left'}};
+    }
+    var totRow=resData.length-1;
+    for(var row=3;row<resData.length;row++){
+      for(var col=1;col<7;col++){
+        var ac=XLSX.utils.encode_cell({r:row,c:col});
+        if(!wsRes[ac])wsRes[ac]={v:0};
+        wsRes[ac].z=NUM_FMT;
+        if(!wsRes[ac].s)wsRes[ac].s={};
+        wsRes[ac].s.alignment={horizontal:'right'};
+        if(row===totRow){wsRes[ac].s.font={bold:true};wsRes[ac].s.fill={patternType:'solid',fgColor:{rgb:'D4F0E0'}};}
+      }
+      if(row===totRow){
+        var a00=XLSX.utils.encode_cell({r:totRow,c:0});
+        if(!wsRes[a00])wsRes[a00]={v:''};
+        wsRes[a00].s={font:{bold:true},fill:{patternType:'solid',fgColor:{rgb:'D4F0E0'}}};
+      }
+    }
+    XLSX.utils.book_append_sheet(wb,wsRes,'Resumen');
+
+    // ── CLIENT SHEETS ─────────────────────────────────────────────────
+    clientes.forEach(function(r){
+      var det=r.detalles.slice().sort(function(a,b){return (b.fecha||'').localeCompare(a.fecha||'');});
+      var detData=[[r.cliente],['Comercial: '+r.comercial],[],
+        ['Comprobante','Detalle','F. Facturación','F. Vencimiento','Días','Estado','Importe','Archivo']];
+      det.forEach(function(d){detData.push([d.comprobante,d.detalle,d.fecha,d.vencimiento,d.dias,d.estado,d.importe,d.archivo]);});
+      var sumPos=det.filter(function(d){return d.importe>0;}).reduce(function(s,d){return s+d.importe;},0);
+      var sumNeg=det.filter(function(d){return d.importe<0;}).reduce(function(s,d){return s+d.importe;},0);
+      detData.push(['','','','','','TOTAL POSITIVOS',sumPos,'']);
+      detData.push(['','','','','','TOTAL NEGATIVOS',sumNeg,'']);
+
+      var wsDet=XLSX.utils.aoa_to_sheet(detData);
+      wsDet['!cols']=[{wch:30},{wch:20},{wch:14},{wch:14},{wch:8},{wch:12},{wch:16},{wch:8}];
+      wsDet['!merges']=[{s:{r:0,c:0},e:{r:0,c:7}},{s:{r:1,c:0},e:{r:1,c:7}}];
+      for(var c2=0;c2<8;c2++){
+        var h0=XLSX.utils.encode_cell({r:0,c:c2});if(!wsDet[h0])wsDet[h0]={v:''};
+        wsDet[h0].s={font:{bold:true,color:{rgb:'FFFFFF'},sz:12},fill:{patternType:'solid',fgColor:{rgb:HEADER_COLOR}}};
+        var h1=XLSX.utils.encode_cell({r:1,c:c2});if(!wsDet[h1])wsDet[h1]={v:''};
+        wsDet[h1].s={font:{italic:true},fill:{patternType:'solid',fgColor:{rgb:'F0FAF4'}}};
+        var h3=XLSX.utils.encode_cell({r:3,c:c2});if(!wsDet[h3])wsDet[h3]={v:''};
+        wsDet[h3].s={font:{bold:true,color:{rgb:'FFFFFF'}},fill:{patternType:'solid',fgColor:{rgb:SUBHEADER_COLOR}},alignment:{horizontal:c2>=4?'right':'left'}};
+      }
+      for(var ri=4;ri<4+det.length;ri++){
+        var d=det[ri-4];
+        var isNeg=d.importe<0;
+        var rowBg=isNeg?'FFF0F0':d.estado==='Vencido'?'FFEBEE':null;
+        for(var ci=0;ci<8;ci++){
+          var ac2=XLSX.utils.encode_cell({r:ri,c:ci});
+          if(!wsDet[ac2])wsDet[ac2]={v:''};
+          if(!wsDet[ac2].s)wsDet[ac2].s={};
+          if(rowBg)wsDet[ac2].s.fill={patternType:'solid',fgColor:{rgb:rowBg}};
+          if(ci===6){wsDet[ac2].z=NUM_FMT;wsDet[ac2].s.alignment={horizontal:'right'};wsDet[ac2].s.font={color:{rgb:isNeg?'C62828':'145533'}};}
+          if(ci===4)wsDet[ac2].s.alignment={horizontal:'right'};
+        }
+      }
+      var totLen=4+det.length;
+      [totLen,totLen+1].forEach(function(tr2){
+        for(var ci2=0;ci2<8;ci2++){
+          var at=XLSX.utils.encode_cell({r:tr2,c:ci2});
+          if(!wsDet[at])wsDet[at]={v:''};
+          if(!wsDet[at].s)wsDet[at].s={};
+          wsDet[at].s.font={bold:true};wsDet[at].s.fill={patternType:'solid',fgColor:{rgb:'D4F0E0'}};
+          if(ci2===6){wsDet[at].z=NUM_FMT;wsDet[at].s.alignment={horizontal:'right'};}
+        }
+      });
+      XLSX.utils.book_append_sheet(wb,wsDet,safeSheetName(r.cliente,usedNames));
+    });
+
+    var comSafe=comercial.replace(/[^a-zA-Z0-9_\-]/g,'_');
+    wbQueue.push({wb:wb,fname:'Estado_'+comSafe+'_'+fecha+'.xlsx'});
+  });
+
+  if(wbQueue.length===0){alert('No hay datos para exportar.');return;}
+  wbQueue.forEach(function(item,idx){
+    setTimeout(function(){XLSX.writeFile(item.wb,item.fname,{bookType:'xlsx',type:'binary',cellStyles:true});},idx*700);
+  });
+}
+
+// ── Carta de Reclamo ──────────────────────────────────────────────────────
+var _cartaClienteIdx=null;
+
+function abrirCartaReclamar(idx){
+  var rows=window._reclamarRows;
+  if(!rows||!rows[idx])return;
+  var r=rows[idx];
+  _cartaClienteIdx=idx;
+
+  document.getElementById('carta-modal-title').textContent='✉️  '+r.cliente;
+
+  // Build full detail list (vencidos + cheques)
+  var map=buildReclamarData();
+  var d=map[r.cliente];
+  if(!d)return;
+
+  // Unique comprobantes
+  var seen=new Set();
+  var detalles=[];
+  [].concat(d.rowsVenc,d.rowsChq).forEach(function(rec){
+    var key=rec['Número de Comprobante']+rec.source;
+    if(!seen.has(key)){seen.add(key);detalles.push(rec);}
+  });
+  detalles.sort(function(a,b){return (a['Fecha Vencimiento']||'').localeCompare(b['Fecha Vencimiento']||'');});
+
+  var today=new Date();today.setHours(0,0,0,0);
+  var listEl=document.getElementById('carta-comprobantes-list');
+  listEl.innerHTML=detalles.map(function(rec,i){
+    var fv=rec['Fecha Vencimiento']?new Date(rec['Fecha Vencimiento']):null;
+    var ff=rec['Fecha']?new Date(rec['Fecha']):null;
+    var diasVenc=fv?Math.floor((today-fv)/86400000):null;
+    var diasEmis=ff?Math.floor((today-ff)/86400000):null;
+    var esVencido=diasVenc!==null&&diasVenc>0;
+    var esChq=(chequesMap[r.cliente]==='Si')&&diasEmis!==null&&diasEmis>5;
+    var rowBg=esVencido?'background:#fff5f5;':'';
+    var statusBg=esVencido?'background:#ffebee;color:#c62828;':'background:#e8f5e9;color:#2e7d32;';
+    var estado=esVencido?'Vencido':'A Vencer';
+    var imp=new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS'}).format(rec.Importe);
+    var tags=esVencido?'Vencido':'A Vencer';
+    if(esChq&&!esVencido)tags='Cheque +5d';
+    if(esChq&&esVencido)tags='Vencido · Cheque +5d';
+    return '<label style="display:flex;align-items:flex-start;gap:10px;padding:8px 16px;cursor:pointer;border-bottom:1px solid #f5f5f5;'+rowBg+'">'+
+      '<input type="checkbox" class="carta-cb" data-idx="'+i+'" onchange="cartaUpdatePreview()" style="accent-color:var(--g600);width:15px;height:15px;margin-top:2px;flex-shrink:0;">'+
+      '<div style="flex:1;min-width:0;">'+
+        '<div style="font-size:13px;font-weight:600;color:#333">'+rec['Número de Comprobante']+'</div>'+
+        '<div style="font-size:11px;color:#666;margin-top:2px;">'+
+          'Factura: '+fmtDate(rec['Fecha'])+' &nbsp;|&nbsp; Vence: '+fmtDate(rec['Fecha Vencimiento'])+
+          ' &nbsp;|&nbsp; <span style="padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;'+statusBg+'">'+tags+'</span>'+
+          ' &nbsp;|&nbsp; <span style="font-weight:600;color:var(--red)">'+imp+'</span>'+
+          ' &nbsp;|&nbsp; Arch. '+rec.source+
+        '</div>'+
+        (rec['Detalle']?'<div style="font-size:11px;color:#999;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+rec['Detalle']+'</div>':'')+
+      '</div></label>';
+  }).join('');
+
+  window._cartaDetalles=detalles;
+  window._cartaCliente=r;
+  document.getElementById('carta-check-all').checked=false;
+  document.getElementById('carta-preview').value='';
+  cartaUpdateCount();
+  document.getElementById('carta-modal-overlay').style.display='flex';
+}
+
+function cerrarCartaModal(){
+  document.getElementById('carta-modal-overlay').style.display='none';
+  _cartaClienteIdx=null;
+}
+
+function cartaToggleAll(checked){
+  document.querySelectorAll('.carta-cb').forEach(function(cb){cb.checked=checked;});
+  cartaUpdatePreview();
+}
+
+function cartaUpdateCount(){
+  var total=document.querySelectorAll('.carta-cb').length;
+  var checked=document.querySelectorAll('.carta-cb:checked').length;
+  var el=document.getElementById('carta-check-count');
+  if(el)el.textContent=checked>0?checked+' de '+total+' seleccionados':total+' comprobantes';
+  var allCb=document.getElementById('carta-check-all');
+  if(allCb){allCb.checked=checked===total&&total>0;allCb.indeterminate=checked>0&&checked<total;}
+}
+
+function cartaUpdatePreview(){
+  cartaUpdateCount();
+  var detalles=window._cartaDetalles;
+  var r=window._cartaCliente;
+  if(!detalles||!r)return;
+
+  var checked=Array.from(document.querySelectorAll('.carta-cb:checked')).map(function(cb){
+    return detalles[parseInt(cb.dataset.idx)];
+  });
+  if(checked.length===0){document.getElementById('carta-preview').value='';return;}
+
+  var nombreCorto=r.cliente.split(' ').slice(0,2).join(' ');
+  var W_COMP=28,W_VENC=14,W_IMP=16;
+  var pad=function(s,w){return String(s).padEnd(w);};
+  var padL=function(s,w){return String(s).padStart(w);};
+
+  var msg='Hola '+nombreCorto+',\n\n';
+  msg+='Te escribo para consultar sobre los siguientes comprobantes pendientes:\n\n';
+  msg+=pad('Comprobante',W_COMP)+pad('Vencimiento',W_VENC)+padL('Importe',W_IMP)+'\n';
+  msg+='─'.repeat(W_COMP+W_VENC+W_IMP)+'\n';
+  checked.forEach(function(rec){
+    var imp=new Intl.NumberFormat('es-AR',{minimumFractionDigits:2}).format(Math.abs(rec.Importe));
+    var signo=rec.Importe<0?'-':'';
+    msg+=pad(rec['Número de Comprobante'],W_COMP)+pad(fmtDate(rec['Fecha Vencimiento']),W_VENC)+padL(signo+'$'+imp,W_IMP)+'\n';
+  });
+  msg+='\nQuedo a disposición. Gracias.';
+  document.getElementById('carta-preview').value=msg;
+}
+
+function copiarMensajeCarta(){
+  var ta=document.getElementById('carta-preview');
+  if(!ta.value){alert('Seleccioná al menos un comprobante primero.');return;}
+  var fb=document.getElementById('carta-copy-feedback');
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(ta.value).then(function(){
+      fb.textContent='✓ Copiado al portapapeles';fb.style.opacity='1';
+      setTimeout(function(){fb.style.opacity='0';},2500);
+    });
+  } else {
+    ta.select();document.execCommand('copy');
+    fb.textContent='✓ Copiado';fb.style.opacity='1';
+    setTimeout(function(){fb.style.opacity='0';},2500);
+  }
+}
+
+
+function calcEstadoKPIData(){
+  var vA=0,vB=0,avA=0,avB=0,apA=0,apB=0;
+  var map=buildEstadoData();
+  Object.keys(map).forEach(function(k){
+    if(estadoChecked[k]===false)return;
+    var d=map[k]; vA+=d.vA; vB+=d.vB; avA+=d.avA; avB+=d.avB;
+  });
+  allData.forEach(function(r){
+    var k=r['Razón social'];
+    if(estadoChecked[k]===false)return;
+    if(r.Importe<0){if(r.source==='A')apA+=r.Importe; else apB+=r.Importe;}
+  });
+  return{vA:vA,vB:vB,avA:avA,avB:avB,apA:apA,apB:apB};
+}
+
+function calcResolverTotals(){
+  var tA=0,tB=0;
+  resolverData.forEach(function(r){
+    if(r.Importe>0){if(r.source==='A')tA+=r.Importe; else tB+=r.Importe;}
+  });
+  return{tA:tA,tB:tB,tG:tA+tB};
+}
+
+function calcEmpleadosTotals(){
+  var tA=0,tB=0;
+  empleadosData.forEach(function(r){
+    if(r.Importe>0){if(r.source==='A')tA+=r.Importe; else tB+=r.Importe;}
+  });
+  return{tA:tA,tB:tB,tG:tA+tB};
+}
+
+function renderResumen(){
+  // Card uniforme: fondo verde oscuro, mismo tamaño via grid
+  var card=function(lbl,val,bg){
+    bg=bg||'var(--g700)';
+    return '<div style="background:'+bg+';color:#fff;border-radius:10px;padding:20px 22px">'+
+      '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;opacity:.65;margin-bottom:8px">'+lbl+'</div>'+
+      '<div style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums">'+fmtMoney(val)+'</div>'+
+      '</div>';
+  };
+
+  // ── Estado por Cliente: 3 cuadros neto ─────────────────────────
+  var e=calcEstadoKPIData();
+  var netoA=(e.vA+e.avA)+e.apA;
+  var netoB=(e.vB+e.avB)+e.apB;
+  var netoG=netoA+netoB;
+  var nEl=document.getElementById('resumen-estado-neto');
+  if(nEl)nEl.innerHTML=
+    card('Neto A  (Total A − A Aplicar A)', netoA,'var(--g700)')+
+    card('Neto B  (Total B − A Aplicar B)', netoB,'var(--g600)')+
+    card('Neto General', netoG,'var(--g800)');
+
+  // ── Clientes a Resolver: 3 cuadros ─────────────────────────────
+  var rv=calcResolverTotals();
+  var rkEl=document.getElementById('resumen-resolver-kpi');
+  if(rkEl)rkEl.innerHTML=
+    card('Total A', rv.tA,'var(--g700)')+
+    card('Total B', rv.tB,'var(--g600)')+
+    card('Total General', rv.tG,'var(--g800)');
+
+  // ── Empleados: 3 cuadros ────────────────────────────────────────
+  var em=calcEmpleadosTotals();
+  var emEl=document.getElementById('resumen-empleados-kpi');
+  if(emEl)emEl.innerHTML=
+    card('Total A', em.tA,'var(--g700)')+
+    card('Total B', em.tB,'var(--g600)')+
+    card('Total General', em.tG,'var(--g800)');
+
+  // ── Total Consolidado: Neto Estado + Resolver + Empleados ───────
+  var consA=netoA+rv.tA+em.tA;
+  var consB=netoB+rv.tB+em.tB;
+  var consG=consA+consB;
+  var tcEl=document.getElementById('resumen-total-kpi');
+  if(tcEl)tcEl.innerHTML=
+    card('Total Consolidado A', consA,'var(--g700)')+
+    card('Total Consolidado B', consB,'var(--g600)')+
+    card('Total Consolidado General', consG,'var(--g800)');
+}
+
+// ── Pestaña Empleados ────────────────────────────────────────────────────────
+var EMPLEADOS_CLIENTS = new Set([]); // se llenará cuando el usuario indique los clientes
+var empleadosData = [];              // se alimenta igual que resolverData
+
+function isEmpleado(name){
+  if(!name)return false;
+  var n=name.trim().toUpperCase();
+  return EMPLEADOS_CLIENTS.has(n);
+}
+
+var empSortCol=0, empSortAsc=true;
+
+function renderEmpleados(){
+  var fEst=document.getElementById('emp-estado').value;
+  var fSrc=document.getElementById('emp-source').value;
+
+  var rows=empleadosData.filter(function(r){
+    if(fSrc&&r.source!==fSrc)return false;
+    return true;
+  });
+
+  var saldoA={},saldoB={};
+  empleadosData.forEach(function(r){
+    var k=r['Razón social'];
+    if(r.source==='A')saldoA[k]=(saldoA[k]||0)+r.Importe;
+    else saldoB[k]=(saldoB[k]||0)+r.Importe;
+  });
+
+  var today2=new Date(); today2.setHours(0,0,0,0);
+  rows=rows.map(function(r){
+    var fv=r['Fecha Vencimiento']?new Date(r['Fecha Vencimiento']):null;
+    var dias=fv?Math.floor((today2-fv)/86400000):null;
+    var vencido=dias!==null&&dias>0;
+    if(fEst==='Vencido'&&!vencido)return null;
+    if(fEst==='A Vencer'&&vencido)return null;
+    var k=r['Razón social'];
+    return Object.assign({},r,{
+      _dias:dias,_vencido:vencido,
+      _sA:saldoA[k]||0,_sB:saldoB[k]||0,
+      _sT:(saldoA[k]||0)+(saldoB[k]||0)
+    });
+  }).filter(Boolean);
+
+  rows.sort(function(a,b){
+    var cols=[a['Razón social'],clientMap[a['Razón social']]||'',a['Número de Comprobante'],a['Fecha'],a['Fecha Vencimiento'],a._dias,a._vencido?'Vencido':'A Vencer',a.Importe,a._sA,a._sB,a._sT,a.source];
+    var colsb=[b['Razón social'],clientMap[b['Razón social']]||'',b['Número de Comprobante'],b['Fecha'],b['Fecha Vencimiento'],b._dias,b._vencido?'Vencido':'A Vencer',b.Importe,b._sA,b._sB,b._sT,b.source];
+    var va=cols[empSortCol]||'', vb=colsb[empSortCol]||'';
+    if(typeof va==='string'){va=va.toLowerCase();vb=vb.toLowerCase();}
+    if(va<vb)return empSortAsc?-1:1;
+    if(va>vb)return empSortAsc?1:-1;
+    return 0;
+  });
+
+  // KPI cards
+  var totA=0,totB=0;
+  empleadosData.forEach(function(r){
+    if(r.source==='A')totA+=r.Importe; else totB+=r.Importe;
+  });
+  var kStyle='border-radius:10px;padding:16px 22px;min-width:160px;flex:1;max-width:220px;';
+  var kEl=document.getElementById('empleados-kpi');
+  if(kEl)kEl.innerHTML=
+    '<div style="'+kStyle+'background:var(--g700);color:#fff"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:6px">Total A</div><div style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums">'+fmtMoney(totA)+'</div></div>'+
+    '<div style="'+kStyle+'background:var(--g600);color:#fff"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:6px">Total B</div><div style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums">'+fmtMoney(totB)+'</div></div>'+
+    '<div style="'+kStyle+'background:var(--g800);color:#fff"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:6px">Total General</div><div style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums">'+fmtMoney(totA+totB)+'</div></div>';
+
+  document.getElementById('emp-count').textContent=rows.length+' comprobantes';
+  var tb=document.getElementById('empleados-tbody');
+  tb.innerHTML='';
+  rows.forEach(function(r){
+    var badge=r._vencido?'<span class="badge bv">Vencido</span>':'<span class="badge bav">A Vencer</span>';
+    var dias=r._dias!==null?(r._vencido?'+'+r._dias+' días':r._dias+' días'):'—';
+    var tr=document.createElement('tr');
+    tr.style.borderBottom='1px solid #f0f4f0';
+    tr.innerHTML=
+      '<td style="padding:7px 11px;font-size:12px;font-weight:500;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis" title="'+r['Razón social']+'">'+r['Razón social']+'</td>'+
+      '<td style="padding:7px 11px;font-size:12px;color:var(--n600)">'+(clientMap[r['Razón social']]||'—')+'</td>'+
+      '<td style="padding:7px 11px;font-size:12px">'+r['Número de Comprobante']+'</td>'+
+      '<td style="padding:7px 11px;font-size:12px;white-space:nowrap">'+fmtDate(r['Fecha'])+'</td>'+
+      '<td style="padding:7px 11px;font-size:12px;white-space:nowrap">'+fmtDate(r['Fecha Vencimiento'])+'</td>'+
+      '<td style="padding:7px 11px;font-size:12px;text-align:center;color:'+(r._vencido?'var(--red)':'var(--g600)')+'">'+dias+'</td>'+
+      '<td style="padding:7px 11px">'+badge+'</td>'+
+      '<td style="padding:7px 11px;font-size:12px;text-align:right;font-variant-numeric:tabular-nums">'+fmtMoney(r.Importe)+'</td>'+
+      '<td style="padding:7px 11px;font-size:12px;text-align:right;font-variant-numeric:tabular-nums;color:var(--g600)">'+fmtMoney(r._sA)+'</td>'+
+      '<td style="padding:7px 11px;font-size:12px;text-align:right;font-variant-numeric:tabular-nums;color:var(--g600)">'+fmtMoney(r._sB)+'</td>'+
+      '<td style="padding:7px 11px;font-size:12px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600">'+fmtMoney(r._sT)+'</td>'+
+      '<td style="padding:7px 11px;text-align:center"><span class="badge '+(r.source==='A'?'ba':'bb')+'">'+r.source+'</span></td>';
+    tb.appendChild(tr);
+  });
+}
+
+function sortEmpleados(col){
+  empSortAsc=(empSortCol===col)?!empSortAsc:true;
+  empSortCol=col;
+  for(var i=0;i<12;i++){
+    var el=document.getElementById('empsa'+i);
+    if(el){el.textContent=i===col?(empSortAsc?'↑':'↓'):'↕';el.style.opacity=i===col?'1':'0.4';}
+  }
+  renderEmpleados();
+}
+
+function switchTab(e,name){
+  document.querySelectorAll('.tabbtn').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('.tabcontent').forEach(function(c){c.classList.remove('active');});
+  e.currentTarget.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='resumen')renderResumen();
+  if(name==='estado'){buildEstadoComercialSelect();msSelected.clear();buildMsOptions();renderEstado();}
+  if(name==='excluidos')renderExcluidos();
+  if(name==='resolver')renderResolver();
+  if(name==='reclamar')renderReclamar();
+  if(name==='empleados')renderEmpleados();
+}
+
+
+// ═══════════════════════════════════════════════════════════
+//  CONFIGURACIÓN GOOGLE SHEETS — editar solo estas 4 líneas
+// ═══════════════════════════════════════════════════════════
+var GSHEET_ID   = '1gcXrr3djFrdTTvMWn_9XkjFGm_TqQDVo5hMS0ZPqeAI';
+var GSHEET_TABS = {
+  A:   'Archivo A',
+  B:   'Archivo B',
+  COM: 'Comerciales'
+};
+// ═══════════════════════════════════════════════════════════
+
+var _sheetsLoaded = {A:false, B:false, COM:false};
+
+function setStatus(msg, col){
+  var el=document.getElementById('gsheet-status');
+  el.textContent=msg;
+  el.style.color=col==='green'?'var(--g600)':col==='red'?'var(--red)':'var(--amber)';
+}
+
+function onSheetLoaded(){
+  var n=[_sheetsLoaded.A,_sheetsLoaded.B,_sheetsLoaded.COM].filter(Boolean).length;
+  if(n===3) setStatus('✓ Datos actualizados — '+new Date().toLocaleTimeString('es-AR'),'green');
+  else       setStatus('Cargando... ('+n+'/3)','amber');
+}
+
+// ── Google Visualization dispatcher ──────────────────────────────────────
+// El gviz API borra el parámetro handler: en el redirect, así que usamos
+// google.visualization.Query.setResponse + carga secuencial para garantizar
+// que cada respuesta va al handler correcto.
+window.google = window.google||{};
+window.google.visualization = window.google.visualization||{};
+window.google.visualization.Query = window.google.visualization.Query||{};
+var _gvizQueue = []; // cola de handlers, uno por request
+window.google.visualization.Query.setResponse = function(resp){
+  var h = _gvizQueue.shift();
+  if(h) h(resp);
+};
+
+function gvizUrl(tabName){
+  return 'https://docs.google.com/spreadsheets/d/'+GSHEET_ID+
+         '/gviz/tq?tqx=out:json&sheet='+encodeURIComponent(tabName);
+}
+
+function loadViaScript(url, handler, onSuccess){
+  _gvizQueue.push(handler);
+  var s=document.createElement('script');
+  s.src=url;
+  s.onload=function(){ if(onSuccess) onSuccess(); };
+  s.onerror=function(){
+    _gvizQueue=[];
+    setStatus('⚠ Error de red. Verificá conexión y permisos del Sheet.','red');
+  };
+  document.head.appendChild(s);
+}
+
+function parseGvizDate(v){
+  if(v===null||v===undefined||v==='') return '';
+  var s=String(v);
+  // gviz format: "Date(2024,5,22)" — mes 0-indexed
+  var m=s.match(/^Date\((\d+),(\d+),(\d+)/);
+  if(m) return m[1]+'-'+('0'+(parseInt(m[2])+1)).slice(-2)+'-'+('0'+parseInt(m[3])).slice(-2);
+  // ISO
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+  // DD/MM/YYYY
+  var dd=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(dd) return dd[3]+'-'+dd[2].padStart(2,'0')+'-'+dd[1].padStart(2,'0');
+  return s;
+}
+
+function gvizTableToRows(table, source){
+  var cols=table.cols, rows=table.rows||[];
+  // Build label→index map (exact + normalised)
+  var idx={};
+  cols.forEach(function(c,i){
+    var label=(c.label||'').trim();
+    idx[label]=i;
+    var norm=label.toLowerCase()
+      .replace(/[áàäâ]/g,'a').replace(/[éèëê]/g,'e')
+      .replace(/[íìïî]/g,'i').replace(/[óòöô]/g,'o')
+      .replace(/[úùüû]/g,'u').replace(/ñ/g,'n');
+    idx[norm]=i;
+  });
+  function colVal(row){
+    for(var k=0;k<arguments.length-1;k++){
+      var key=arguments[k+1];
+      var norm2=key.toLowerCase()
+        .replace(/[áàäâ]/g,'a').replace(/[éèëê]/g,'e')
+        .replace(/[íìïî]/g,'i').replace(/[óòöô]/g,'o')
+        .replace(/[úùüû]/g,'u').replace(/ñ/g,'n');
+      var i=idx[key]!==undefined?idx[key]:(idx[norm2]!==undefined?idx[norm2]:undefined);
+      if(i!==undefined&&row.c&&row.c[i]&&row.c[i].v!==null&&row.c[i].v!==undefined)
+        return row.c[i].v;
+    }
+    return '';
+  }
+  return rows.map(function(row){
+    var rs=String(colVal(row,'Razón social','Razon social')||'').trim();
+    // Importe: gviz puede devolver número o texto con comas de miles
+    // parseFloat("1,649,225.88") = 1 (trunca en la coma) → hay que limpiar
+    var impRaw=colVal(row,'Importe');
+    var imp;
+    if(typeof impRaw==='number'){
+      imp=impRaw;
+    } else {
+      var impStr=String(impRaw||'0').trim();
+      // Detectar formato: si tiene punto Y coma, el punto puede ser miles
+      // Formato AR: 1.649.225,88  →  reemplazar . por nada y , por .
+      // Formato US: 1,649,225.88  →  reemplazar , por nada
+      if(/\d\.\d{3},\d/.test(impStr)){
+        impStr=impStr.replace(/\./g,'').replace(',','.');
+      } else {
+        impStr=impStr.replace(/,/g,'');
+      }
+      imp=parseFloat(impStr)||0;
+    }
+    if(!rs||rs==='NaN') return null;
+    return {
+      'Número de Comprobante':String(colVal(row,'Número de Comprobante','Numero de Comprobante')||''),
+      'Razón social':rs,
+      'Fecha':parseGvizDate(colVal(row,'Fecha')),
+      'Fecha Vencimiento':parseGvizDate(colVal(row,'Fecha Vencimiento','Fecha vencimiento')),
+      'Importe':imp,
+      'Detalle':String(colVal(row,'Detalle')||''),
+      'source':source
+    };
+  }).filter(Boolean);
+}
+
+function ingestRows(rows, source){
+  allData=allData.filter(function(r){return r.source!==source;});
+  rawData=rawData.filter(function(r){return r.source!==source;});
+  resolverData=resolverData.filter(function(r){return r.source!==source;});
+  rows.forEach(function(rec){
+    rawData.push(rec);
+    if(isExcluded(rec['Razón social'])) return;
+    if(isResolver(rec['Razón social'])){
+      resolverData.push(rec);
+      if(!(rec['Razón social'] in clientMap)) clientMap[rec['Razón social']]='';
+      return;
+    }
+    if(!(rec['Razón social'] in clientMap)) clientMap[rec['Razón social']]='';
+    allData.push(rec);
+  });
+}
+
+window.handleSheetA=function(resp){
+  if(!resp||resp.status!=='ok'){setStatus('⚠ Error en pestaña A','red');return;}
+  ingestRows(gvizTableToRows(resp.table,'A'),'A');
+  _sheetsLoaded.A=true; onSheetLoaded();
+  purgeOnlyNegatives(); buildSelects(); applyFilters(); renderResumen();
+};
+
+window.handleSheetB=function(resp){
+  if(!resp||resp.status!=='ok'){setStatus('⚠ Error en pestaña B','red');return;}
+  ingestRows(gvizTableToRows(resp.table,'B'),'B');
+  _sheetsLoaded.B=true; onSheetLoaded();
+  purgeOnlyNegatives(); buildSelects(); applyFilters(); renderResumen();
+};
+
+window.handleSheetCom=function(resp){
+  if(!resp||resp.status!=='ok'){setStatus('⚠ Error en pestaña Comerciales','red');return;}
+  var cols=resp.table.cols, rows=resp.table.rows||[];
+  // Detectar columnas por nombre
+  var riIdx=-1, comIdx=-1, chkIdx=-1;
+  cols.forEach(function(c,i){
+    var kl=(c.label||'').trim().toLowerCase()
+      .replace(/[áàä]/g,'a').replace(/[éèë]/g,'e')
+      .replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/ñ/g,'n');
+    if(kl.indexOf('social')>-1||kl.indexOf('razon')>-1) riIdx=i;
+    if(kl==='comercial') comIdx=i;
+    // Solo la columna cuyo nombre EMPIEZA con "cheque" (excluye "Condición del Cheque")
+    if(/^cheque/.test(kl) && chkIdx===-1) chkIdx=i;
+  });
+  // Fallback a posiciones fijas si la detección falla
+  // Estructura esperada: CUIT(0) | Razón social(1) | Comercial(2) | Cheques(3)
+  if(riIdx===-1)  riIdx=1;
+  if(comIdx===-1) comIdx=2;
+  if(chkIdx===-1) chkIdx=3;
+  function gv(row,i){
+    if(!row.c||!row.c[i]||row.c[i].v===null||row.c[i].v===undefined) return '';
+    return String(row.c[i].v);
+  }
+  rows.forEach(function(row){
+    var rs=gv(row,riIdx).trim(), com=gv(row,comIdx).trim();
+    var chkRaw=gv(row,chkIdx).trim().toUpperCase();
+    if(!rs||rs==='(en blanco)') return;
+    if(com) clientMap[rs]=com;
+    // Solo 'Si' si el valor es exactamente 'SI'; cualquier otra cosa (vacío, NO, texto) → 'No'
+    chequesMap[rs]=(chkRaw==='SI')?'Si':'No';
+  });
+  _sheetsLoaded.COM=true; onSheetLoaded();
+  buildSelects(); buildEstadoComercialSelect();
+  renderTable(); renderKPIs();
+  if(document.getElementById('tab-estado').classList.contains('active')) renderEstado();
+};
+
+function reloadSheets(){
+  _sheetsLoaded={A:false,B:false,COM:false};
+  _gvizQueue=[];
+  allData=[]; rawData=[]; resolverData=[]; clientMap={}; chequesMap={};
+  setStatus('Actualizando...','amber');
+  renderKPIs(); renderTable(); renderResumen();
+  loadAllSheets();
+}
+
+var _loadTimeout=null;
+function loadAllSheets(){
+  setStatus('Conectando con Google Sheets...','amber');
+  if(_loadTimeout) clearTimeout(_loadTimeout);
+  _loadTimeout=setTimeout(function(){
+    if(!_sheetsLoaded.A||!_sheetsLoaded.B||!_sheetsLoaded.COM){
+      setStatus('⚠ No cargó. Publicá el Sheet: Archivo → Compartir → Publicar en la web','red');
+    }
+  }, 12000);
+  // Carga SECUENCIAL — garantiza que cada setResponse va al handler correcto
+  loadViaScript(gvizUrl(GSHEET_TABS.A), window.handleSheetA, function(){
+    loadViaScript(gvizUrl(GSHEET_TABS.B), window.handleSheetB, function(){
+      loadViaScript(gvizUrl(GSHEET_TABS.COM), window.handleSheetCom);
+    });
+  });
+}
+// INIT
+(function(){
+  var opts={weekday:'long',year:'numeric',month:'long',day:'numeric'};
+  document.getElementById('report-date').textContent='Informe al '+today.toLocaleDateString('es-AR',opts);
+  purgeOnlyNegatives(); buildSelects(); renderKPIs(); renderTable(); renderResumen();
+  loadAllSheets();
+})();
+</script>
+
+<!-- Carta Modal -->
+<div id="carta-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:20000;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,0.3);width:90vw;max-width:820px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="background:var(--g700);color:white;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+      <span id="carta-modal-title" style="font-size:16px;font-weight:600;">Redactar Reclamo</span>
+      <button onclick="cerrarCartaModal()" style="background:none;border:none;color:white;font-size:24px;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:4px;">&times;</button>
+    </div>
+    <div style="display:flex;flex:1;overflow:hidden;min-height:0;">
+      <div style="width:52%;border-right:1px solid #e8e8e8;display:flex;flex-direction:column;overflow:hidden;">
+        <div style="padding:12px 16px;background:#fafafa;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;cursor:pointer;">
+            <input type="checkbox" id="carta-check-all" onchange="cartaToggleAll(this.checked)" style="accent-color:var(--g600);width:15px;height:15px;">
+            Seleccionar todos
+          </label>
+          <span id="carta-check-count" style="font-size:12px;color:#999;margin-left:auto;"></span>
+        </div>
+        <div id="carta-comprobantes-list" style="overflow-y:auto;flex:1;padding:8px 0;"></div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <div style="padding:12px 16px;background:#fafafa;border-bottom:1px solid #e8e8e8;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:13px;font-weight:600;color:var(--g600);">Vista previa</span>
+          <button onclick="copiarMensajeCarta()" style="background:var(--g600);color:white;border:none;padding:7px 14px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;">📋 Copiar</button>
+        </div>
+        <textarea id="carta-preview" readonly style="flex:1;resize:none;border:none;padding:16px;font-family:'Courier New',monospace;font-size:12px;line-height:1.7;color:#333;background:white;outline:none;" placeholder="Seleccioná al menos un comprobante para ver el mensaje..."></textarea>
+      </div>
+    </div>
+    <div style="padding:12px 20px;background:#fafafa;border-top:1px solid #e8e8e8;display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0;">
+      <span id="carta-copy-feedback" style="font-size:12px;color:var(--g600);font-weight:600;opacity:0;transition:opacity 0.4s;"></span>
+      <button onclick="cerrarCartaModal()" style="background:white;border:1px solid #ddd;padding:8px 18px;border-radius:4px;cursor:pointer;font-size:13px;font-family:inherit;">Cerrar</button>
+    </div>
+  </div>
+</div>
+<script>document.getElementById('carta-modal-overlay').addEventListener('click',function(e){if(e.target===this)cerrarCartaModal();});</script>
+</body>
+</html>
