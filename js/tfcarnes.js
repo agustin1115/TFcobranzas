@@ -310,14 +310,41 @@ function buildProyeccion(datos, key, porCliente){
     const aplicar = key === 'A' ? r.aplicarA : r.aplicarB;
     totalCobrar += debe - aplicar;
   });
-  const rows = Object.keys(porFecha).sort().map(f => ({
-    fecha: f,
-    importe: porFecha[f].total,
-    dias: calcularDias(f),
-    detalles: Object.entries(porFecha[f].porCliente)
-      .map(([cliente, importe]) => ({ cliente, importe }))
-      .sort((a, b) => b.importe - a.importe)
-  }));
+
+  // Lo vencido hace más de 30 días se acumula en UNA sola fila (sin desglose por
+  // fecha ni por empresa, solo el monto total) en vez de mostrar cada fecha vieja
+  // por separado — son comprobantes muy viejos, no aportan al seguimiento diario.
+  const VENCIDO_AGRUPAR_DIAS = -30;
+  const rows = [];
+  let agrupado = null; // { total, fechaMin, diasMin }
+  Object.keys(porFecha).sort().forEach(f => {
+    const dias = calcularDias(f);
+    if (dias < VENCIDO_AGRUPAR_DIAS) {
+      if (!agrupado) agrupado = { total: 0, fechaMin: f, diasMin: dias };
+      agrupado.total += porFecha[f].total;
+      if (f < agrupado.fechaMin) agrupado.fechaMin = f;
+      if (dias < agrupado.diasMin) agrupado.diasMin = dias;
+      return;
+    }
+    rows.push({
+      fecha: f,
+      importe: porFecha[f].total,
+      dias,
+      detalles: Object.entries(porFecha[f].porCliente)
+        .map(([cliente, importe]) => ({ cliente, importe }))
+        .sort((a, b) => b.importe - a.importe)
+    });
+  });
+  if (agrupado) {
+    rows.push({
+      fecha: agrupado.fechaMin,
+      importe: agrupado.total,
+      dias: agrupado.diasMin,
+      agrupado: true,
+      detalles: []
+    });
+  }
+
   return { totalCobrar, aResolver, vencido, d7, d15, dMas, rows };
 }
 
@@ -351,6 +378,14 @@ function renderTabla(tag){
   const tbody = document.getElementById(`tbody-${tag}`);
   if (!rows.length) { tbody.innerHTML = '<tr><td colspan="4" class="no-data">Sin cuentas a cobrar</td></tr>'; return; }
   tbody.innerHTML = rows.map(r => {
+    if (r.agrupado) {
+      return `<tr class="overdue-row">
+        <td><span class="dlabel">Vencido hace más de 30 días</span></td>
+        <td class="dsub">acumulado</td>
+        <td>${fm(r.importe)}</td>
+        <td class="empresas-cell">—</td>
+      </tr>`;
+    }
     const rc = r.dias < 0 ? 'overdue-row' : r.dias <= 7 ? 'soon-row' : '';
     const diasLabel = r.dias < 0 ? `vencido ${Math.abs(r.dias)}d` : r.dias === 0 ? 'HOY' : `en ${r.dias}d`;
     const empresas = r.detalles.map(x => `${x.cliente} (${fm(x.importe)})`).join(', ');
