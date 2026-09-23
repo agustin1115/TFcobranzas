@@ -345,7 +345,7 @@ function buildProyeccion(datos, key, porCliente){
     });
   }
 
-  return { totalCobrar, aResolver, vencido, d7, d15, dMas, rows };
+  return { totalCobrar, aResolver, vencido, aVencer: d7 + d15 + dMas, d7, d15, dMas, rows };
 }
 
 // Estado de orden de la tabla y última proyección calculada, por panel (A/B).
@@ -404,6 +404,7 @@ function renderPanel(tag, datos, key, porCliente){
   document.getElementById(`kpi${tag}-total`).textContent = fm(p.totalCobrar);
   document.getElementById(`kpi${tag}-vencido`).textContent = fm(p.vencido);
   document.getElementById(`kpi${tag}-dc`).textContent = fm(p.aResolver);
+  document.getElementById(`kpi${tag}-avencer`).textContent = fm(p.aVencer);
   document.getElementById(`kpi${tag}-d7`).textContent = fm(p.d7);
   document.getElementById(`kpi${tag}-d15`).textContent = fm(p.d15);
   document.getElementById(`kpi${tag}-d15plus`).textContent = fm(p.dMas);
