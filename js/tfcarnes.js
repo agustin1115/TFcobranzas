@@ -381,19 +381,72 @@ function buildProyeccion(datos, key, porCliente){
   return { totalCobrar, aResolver, vencido, aVencer: d7 + d15 + dMas, d7, d15, dMas, rows };
 }
 
+function fmtExcl(n){ const s = fm(Math.abs(n)); return n < 0 ? `-${s}` : s; }
+function fmtDiasUno(d){ return d < 0 ? `vencido hace ${Math.abs(d)}d` : d === 0 ? 'vence hoy' : `vence en ${d}d`; }
+function fmtDiasRango(min, max){ return min === max ? fmtDiasUno(min) : `${fmtDiasUno(min)} … ${fmtDiasUno(max)}`; }
+
+// Detalle de "Total a cobrar": mismo criterio que el loop de totalCobrar en
+// buildProyeccion() (cliente elegible, no "a resolver", debe−aplicar de ESTE
+// archivo), pero por cliente en vez de un solo número.
+function getTotalCobrarDetalle(datos, key, porCliente){
+  const filasPorCliente = new Map();
+  datos.forEach(d => filasPorCliente.set(d.cliente, (filasPorCliente.get(d.cliente) || 0) + 1));
+  const list = [];
+  Object.entries(porCliente).forEach(([cliente, r]) => {
+    if ((r.debeA + r.debeB) <= 0 || esAResolver(cliente)) return;
+    const debe = key === 'A' ? r.debeA : r.debeB;
+    const aplicar = key === 'A' ? r.aplicarA : r.aplicarB;
+    if (debe === 0 && aplicar === 0) return; // elegible por el otro archivo, acá no tiene filas
+    list.push({
+      cliente,
+      razon: aplicar > 0 ? `Debe ${fmtExcl(debe)} − aplica ${fmtExcl(aplicar)}` : `Debe ${fmtExcl(debe)}`,
+      filas: filasPorCliente.get(cliente) || 0,
+      importe: debe - aplicar,
+    });
+  });
+  return list.sort((a, b) => b.importe - a.importe);
+}
+
+// Detalle de un bucket de días (Vencido / Próx.7 / De7a15 / Más15 / A vencer
+// combinado): mismo criterio de elegibilidad + esAResolver + importe>0 que
+// usa buildProyeccion() para sumar cada bucket, agrupado por cliente.
+function getBucketDetalle(datos, porCliente, filtroDias){
+  const map = new Map();
+  datos.forEach(d => {
+    const r = porCliente[d.cliente];
+    const elegible = r && (r.debeA + r.debeB) > 0;
+    if (!elegible || esAResolver(d.cliente) || d.importe <= 0) return;
+    const dias = calcularDias(d.vencimiento);
+    if (!filtroDias(dias)) return;
+    if (!map.has(d.cliente)) map.set(d.cliente, { cliente: d.cliente, importe: 0, filas: 0, diasMin: dias, diasMax: dias });
+    const v = map.get(d.cliente);
+    v.importe += d.importe;
+    v.filas += 1;
+    if (dias < v.diasMin) v.diasMin = dias;
+    if (dias > v.diasMax) v.diasMax = dias;
+  });
+  return [...map.values()]
+    .map(v => ({ cliente: v.cliente, razon: fmtDiasRango(v.diasMin, v.diasMax), filas: v.filas, importe: v.importe }))
+    .sort((a, b) => b.importe - a.importe);
+}
+
 // Estado de orden de la tabla y última proyección calculada, por panel (A/B).
 const sortState = { A: { col: 'fecha', dir: 1 }, B: { col: 'fecha', dir: 1 } };
 const ultimaProyeccion = { A: null, B: null };
 const ultimoAResolverDetalle = { A: [], B: [] };
+const detallesKpi = {
+  A: { total: [], vencido: [], avencer: [], d7: [], d15: [], d15plus: [] },
+  B: { total: [], vencido: [], avencer: [], d7: [], d15: [], d15plus: [] },
+};
 
-function fmtExcl(n){ const s = fm(Math.abs(n)); return n < 0 ? `-${s}` : s; }
-
-function abrirModalDetalle(titulo, lista, vacioMsg){
+function abrirModalDetalle(titulo, lista, vacioMsg, col2Label){
   const totalImporte = lista.reduce((s, r) => s + r.importe, 0);
   const totalFilas = lista.reduce((s, r) => s + r.filas, 0);
   document.getElementById('excl-title').textContent = titulo;
   document.getElementById('excl-sub').textContent =
     `${lista.length} clientes · ${totalFilas} filas del Sheet · ${fmtExcl(totalImporte)} en total`;
+  const elCol2 = document.getElementById('excl-col2');
+  if (elCol2) elCol2.textContent = col2Label || 'Detalle';
   const tbody = document.getElementById('excl-tbody');
   tbody.innerHTML = lista.length
     ? lista.map(r => `<tr>
@@ -407,7 +460,23 @@ function abrirModalDetalle(titulo, lista, vacioMsg){
   document.body.style.overflow = 'hidden';
 }
 function verAResolver(tag){
-  abrirModalDetalle(`A resolver (excluido) · Archivo ${tag}`, ultimoAResolverDetalle[tag] || [], 'No hay clientes "a resolver" en este archivo');
+  abrirModalDetalle(`A resolver (excluido) · Archivo ${tag}`, ultimoAResolverDetalle[tag] || [], 'No hay clientes "a resolver" en este archivo', 'Por qué está "a resolver"');
+}
+
+// Config de cada KPI clickeable: título del modal, texto de la 2da columna,
+// y mensaje cuando no hay nada que mostrar.
+const KPI_INFO = {
+  total:   { titulo: 'Total a cobrar',     col2: 'Cómo se compone',      vacio: 'No hay cuentas a cobrar en este archivo' },
+  vencido: { titulo: 'Vencido',            col2: 'Vencimiento',          vacio: 'No hay comprobantes vencidos' },
+  avencer: { titulo: 'A vencer',           col2: 'Vencimiento',          vacio: 'No hay comprobantes a vencer' },
+  d7:      { titulo: 'Próx. 7 días',       col2: 'Vencimiento',          vacio: 'No hay comprobantes en los próximos 7 días' },
+  d15:     { titulo: 'De 7 a 15 días',     col2: 'Vencimiento',          vacio: 'No hay comprobantes entre 7 y 15 días' },
+  d15plus: { titulo: 'Más de 15 días',     col2: 'Vencimiento',          vacio: 'No hay comprobantes a más de 15 días' },
+};
+function verKpi(tag, tipo){
+  const info = KPI_INFO[tipo];
+  const lista = (detallesKpi[tag] && detallesKpi[tag][tipo]) || [];
+  abrirModalDetalle(`${info.titulo} · Archivo ${tag}`, lista, info.vacio, info.col2);
 }
 function cerrarExcluidos(){
   document.getElementById('excl-overlay').classList.remove('open');
@@ -464,6 +533,14 @@ function renderPanel(tag, datos, key, porCliente){
   const p = buildProyeccion(datos, key, porCliente);
   ultimaProyeccion[tag] = p;
   ultimoAResolverDetalle[tag] = getAResolverDetalle(datos, porCliente);
+  detallesKpi[tag] = {
+    total:   getTotalCobrarDetalle(datos, key, porCliente),
+    vencido: getBucketDetalle(datos, porCliente, dias => dias <= 0),
+    avencer: getBucketDetalle(datos, porCliente, dias => dias >= 1),
+    d7:      getBucketDetalle(datos, porCliente, dias => dias >= 1 && dias <= 7),
+    d15:     getBucketDetalle(datos, porCliente, dias => dias >= 8 && dias <= 15),
+    d15plus: getBucketDetalle(datos, porCliente, dias => dias >= 16),
+  };
   document.getElementById(`kpi${tag}-total`).textContent = fm(p.totalCobrar);
   document.getElementById(`kpi${tag}-vencido`).textContent = fm(p.vencido);
   document.getElementById(`kpi${tag}-dc`).textContent = fm(p.aResolver);
