@@ -35,6 +35,10 @@ const CLIENTES_DIFICIL_COBRO = new Set([
   "CARNES EL DIAMANTE S.R.L."
 ]);
 function esDificilCobro(cliente){ return CLIENTES_DIFICIL_COBRO.has(cliente); }
+// Acá la lista es de coincidencia exacta nada más (a diferencia de TF Carnes,
+// que también tiene coincidencia parcial) — por eso el motivo es siempre el
+// mismo texto, no hace falta distinguir casos.
+function razonDificilCobro(cliente){ return esDificilCobro(cliente) ? 'Está en la lista de difícil cobro (nombre exacto)' : null; }
 
 // ── JSONP LOADER — igual que en Cobranzas, funciona desde file:// sin CORS ─
 function loadSheetJSONP(sheetName) {
@@ -220,10 +224,121 @@ function buildProyeccion(datos, key, porCliente){
   return { totalCobrar, dificilCobro, vencido, aVencer: d7 + d15 + dMas, d7, d15, dMas, rows };
 }
 
+function fmtExcl(n){ const s = fm(Math.abs(n)); return n < 0 ? `-${s}` : s; }
+function fmtDiasUno(d){ return d < 0 ? `vencido hace ${Math.abs(d)}d` : d === 0 ? 'vence hoy' : `vence en ${d}d`; }
+function fmtDiasRango(min, max){ return min === max ? fmtDiasUno(min) : `${fmtDiasUno(min)} … ${fmtDiasUno(max)}`; }
+
+// Detalle de "Difícil cobro (excluido)": mismo criterio que buildProyeccion()
+// (cliente elegible + esDificilCobro + importe positivo), agrupado por cliente.
+function getDificilCobroDetalle(datos, porCliente){
+  const map = new Map();
+  datos.forEach(d => {
+    const r = porCliente[d.cliente];
+    const elegible = r && (r.debeA + r.debeB) > 0;
+    if (!elegible || !esDificilCobro(d.cliente) || d.importe <= 0) return;
+    if (!map.has(d.cliente)) map.set(d.cliente, { cliente: d.cliente, razon: razonDificilCobro(d.cliente), importe: 0, filas: 0 });
+    const v = map.get(d.cliente);
+    v.importe += d.importe;
+    v.filas += 1;
+  });
+  return [...map.values()].sort((a, b) => b.importe - a.importe);
+}
+
+// Detalle de "Total a cobrar": mismo criterio que el loop de totalCobrar en
+// buildProyeccion() (cliente elegible, sin difícil cobro, debe−aplicar de ESTE
+// archivo), pero por cliente en vez de un solo número.
+function getTotalCobrarDetalle(datos, key, porCliente){
+  const filasPorCliente = new Map();
+  datos.forEach(d => filasPorCliente.set(d.cliente, (filasPorCliente.get(d.cliente) || 0) + 1));
+  const list = [];
+  Object.entries(porCliente).forEach(([cliente, r]) => {
+    if ((r.debeA + r.debeB) <= 0 || esDificilCobro(cliente)) return;
+    const debe = key === 'A' ? r.debeA : r.debeB;
+    const aplicar = key === 'A' ? r.aplicarA : r.aplicarB;
+    if (debe === 0 && aplicar === 0) return; // elegible por el otro archivo, acá no tiene filas
+    list.push({
+      cliente,
+      razon: aplicar > 0 ? `Debe ${fmtExcl(debe)} − aplica ${fmtExcl(aplicar)}` : `Debe ${fmtExcl(debe)}`,
+      filas: filasPorCliente.get(cliente) || 0,
+      importe: debe - aplicar,
+    });
+  });
+  return list.sort((a, b) => b.importe - a.importe);
+}
+
+// Detalle de un bucket de días (Vencido / Próx.7 / De7a15 / Más15 / A vencer
+// combinado): mismo criterio de elegibilidad + esDificilCobro + importe>0 que
+// usa buildProyeccion() para sumar cada bucket, agrupado por cliente.
+function getBucketDetalle(datos, porCliente, filtroDias){
+  const map = new Map();
+  datos.forEach(d => {
+    const r = porCliente[d.cliente];
+    const elegible = r && (r.debeA + r.debeB) > 0;
+    if (!elegible || esDificilCobro(d.cliente) || d.importe <= 0) return;
+    const dias = calcularDias(d.vencimiento);
+    if (!filtroDias(dias)) return;
+    if (!map.has(d.cliente)) map.set(d.cliente, { cliente: d.cliente, importe: 0, filas: 0, diasMin: dias, diasMax: dias });
+    const v = map.get(d.cliente);
+    v.importe += d.importe;
+    v.filas += 1;
+    if (dias < v.diasMin) v.diasMin = dias;
+    if (dias > v.diasMax) v.diasMax = dias;
+  });
+  return [...map.values()]
+    .map(v => ({ cliente: v.cliente, razon: fmtDiasRango(v.diasMin, v.diasMax), filas: v.filas, importe: v.importe }))
+    .sort((a, b) => b.importe - a.importe);
+}
+
 // Estado de orden de la tabla y última proyección calculada, por panel (A/B).
 // Se guarda la proyección para poder reordenar sin tener que recalcular todo.
 const sortState = { A: { col: 'fecha', dir: 1 }, B: { col: 'fecha', dir: 1 } };
 const ultimaProyeccion = { A: null, B: null };
+const ultimoDificilCobroDetalle = { A: [], B: [] };
+const detallesKpi = {
+  A: { total: [], vencido: [], avencer: [], d7: [], d15: [], d15plus: [] },
+  B: { total: [], vencido: [], avencer: [], d7: [], d15: [], d15plus: [] },
+};
+
+function abrirModalDetalle(titulo, lista, vacioMsg, col2Label){
+  const totalImporte = lista.reduce((s, r) => s + r.importe, 0);
+  const totalFilas = lista.reduce((s, r) => s + r.filas, 0);
+  document.getElementById('excl-title').textContent = titulo;
+  document.getElementById('excl-sub').textContent =
+    `${lista.length} clientes · ${totalFilas} filas del Sheet · ${fmtExcl(totalImporte)} en total`;
+  const elCol2 = document.getElementById('excl-col2');
+  if (elCol2) elCol2.textContent = col2Label || 'Detalle';
+  const tbody = document.getElementById('excl-tbody');
+  tbody.innerHTML = lista.length
+    ? lista.map(r => `<tr>
+        <td>${r.cliente}</td>
+        <td class="excl-razon">${r.razon || '—'}</td>
+        <td class="r">${r.filas}</td>
+        <td class="r">${fmtExcl(r.importe)}</td>
+      </tr>`).join('')
+    : `<tr><td colspan="4" class="no-data">${vacioMsg}</td></tr>`;
+  document.getElementById('excl-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function verDificilCobro(tag){
+  abrirModalDetalle(`Difícil cobro (excluido) · Archivo ${tag}`, ultimoDificilCobroDetalle[tag] || [], 'No hay clientes de difícil cobro en este archivo', 'Por qué es difícil cobro');
+}
+const KPI_INFO = {
+  total:   { titulo: 'Total a cobrar',     col2: 'Cómo se compone', vacio: 'No hay cuentas a cobrar en este archivo' },
+  vencido: { titulo: 'Vencido',            col2: 'Vencimiento',     vacio: 'No hay comprobantes vencidos' },
+  avencer: { titulo: 'A vencer',           col2: 'Vencimiento',     vacio: 'No hay comprobantes a vencer' },
+  d7:      { titulo: 'Próx. 7 días',       col2: 'Vencimiento',     vacio: 'No hay comprobantes en los próximos 7 días' },
+  d15:     { titulo: 'De 7 a 15 días',     col2: 'Vencimiento',     vacio: 'No hay comprobantes entre 7 y 15 días' },
+  d15plus: { titulo: 'Más de 15 días',     col2: 'Vencimiento',     vacio: 'No hay comprobantes a más de 15 días' },
+};
+function verKpi(tag, tipo){
+  const info = KPI_INFO[tipo];
+  const lista = (detallesKpi[tag] && detallesKpi[tag][tipo]) || [];
+  abrirModalDetalle(`${info.titulo} · Archivo ${tag}`, lista, info.vacio, info.col2);
+}
+function cerrarExcluidos(){
+  document.getElementById('excl-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
 
 function ordenarTabla(tag, columna){
   const st = sortState[tag];
@@ -274,6 +389,15 @@ function renderTabla(tag){
 function renderPanel(tag, datos, key, porCliente){
   const p = buildProyeccion(datos, key, porCliente);
   ultimaProyeccion[tag] = p;
+  ultimoDificilCobroDetalle[tag] = getDificilCobroDetalle(datos, porCliente);
+  detallesKpi[tag] = {
+    total:   getTotalCobrarDetalle(datos, key, porCliente),
+    vencido: getBucketDetalle(datos, porCliente, dias => dias <= 0),
+    avencer: getBucketDetalle(datos, porCliente, dias => dias >= 1),
+    d7:      getBucketDetalle(datos, porCliente, dias => dias >= 1 && dias <= 7),
+    d15:     getBucketDetalle(datos, porCliente, dias => dias >= 8 && dias <= 15),
+    d15plus: getBucketDetalle(datos, porCliente, dias => dias >= 16),
+  };
   document.getElementById(`kpi${tag}-total`).textContent = fm(p.totalCobrar);
   document.getElementById(`kpi${tag}-vencido`).textContent = fm(p.vencido);
   document.getElementById(`kpi${tag}-dc`).textContent = fm(p.dificilCobro);

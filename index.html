@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260922a">
+<link rel="stylesheet" href="css/style.css?v=20260924a">
 </head>
 <body>
 <div id="loading-bar"></div>
@@ -37,17 +37,17 @@
     <div class="co-header">ARCHIVO A · Cuentas a Cobrar</div>
     <div class="kpi-block">
       <div class="kpi-row">
-        <div class="kpi" style="background:var(--tf-light)"><div class="kpi-label" style="color:var(--tf-primary);font-weight:700">Total a cobrar</div><div class="kpi-value" id="kpiA-total">—</div></div>
-        <div class="kpi"><div class="kpi-label">Vencido</div><div class="kpi-value neg" id="kpiA-vencido">—</div></div>
-        <div class="kpi"><div class="kpi-label">A vencer</div><div class="kpi-value" id="kpiA-avencer">—</div></div>
+        <div class="kpi kpi-click" style="background:var(--tf-light)" onclick="verKpi('A','total')"><div class="kpi-label" style="color:var(--tf-primary);font-weight:700">Total a cobrar ↗</div><div class="kpi-value" id="kpiA-total">—</div></div>
+        <div class="kpi kpi-click" onclick="verKpi('A','vencido')"><div class="kpi-label">Vencido ↗</div><div class="kpi-value neg" id="kpiA-vencido">—</div></div>
+        <div class="kpi kpi-click" onclick="verKpi('A','avencer')"><div class="kpi-label">A vencer ↗</div><div class="kpi-value" id="kpiA-avencer">—</div></div>
       </div>
       <div class="kpi-row" style="border-top:1px solid #f0f0f0">
-        <div class="kpi"><div class="kpi-label">Próx. 7 días</div><div class="kpi-value" id="kpiA-d7">—</div></div>
-        <div class="kpi"><div class="kpi-label">De 7 a 15 días</div><div class="kpi-value" id="kpiA-d15">—</div></div>
-        <div class="kpi"><div class="kpi-label">Más de 15 días</div><div class="kpi-value" id="kpiA-d15plus">—</div></div>
+        <div class="kpi kpi-click" onclick="verKpi('A','d7')"><div class="kpi-label">Próx. 7 días ↗</div><div class="kpi-value" id="kpiA-d7">—</div></div>
+        <div class="kpi kpi-click" onclick="verKpi('A','d15')"><div class="kpi-label">De 7 a 15 días ↗</div><div class="kpi-value" id="kpiA-d15">—</div></div>
+        <div class="kpi kpi-click" onclick="verKpi('A','d15plus')"><div class="kpi-label">Más de 15 días ↗</div><div class="kpi-value" id="kpiA-d15plus">—</div></div>
       </div>
       <div class="kpi-row" style="border-top:1px solid #f0f0f0">
-        <div class="kpi"><div class="kpi-label">Difícil cobro (excluido)</div><div class="kpi-value dc" id="kpiA-dc">—</div></div>
+        <div class="kpi kpi-click" onclick="verDificilCobro('A')"><div class="kpi-label">Difícil cobro (excluido) ↗</div><div class="kpi-value dc" id="kpiA-dc">—</div></div>
       </div>
     </div>
     <div class="cf-table-wrap"><table>
@@ -66,17 +66,17 @@
     <div class="co-header">ARCHIVO B · Cuentas a Cobrar</div>
     <div class="kpi-block">
       <div class="kpi-row">
-        <div class="kpi" style="background:var(--tf-light)"><div class="kpi-label" style="color:var(--tf-primary);font-weight:700">Total a cobrar</div><div class="kpi-value" id="kpiB-total">—</div></div>
-        <div class="kpi"><div class="kpi-label">Vencido</div><div class="kpi-value neg" id="kpiB-vencido">—</div></div>
-        <div class="kpi"><div class="kpi-label">A vencer</div><div class="kpi-value" id="kpiB-avencer">—</div></div>
+        <div class="kpi kpi-click" style="background:var(--tf-light)" onclick="verKpi('B','total')"><div class="kpi-label" style="color:var(--tf-primary);font-weight:700">Total a cobrar ↗</div><div class="kpi-value" id="kpiB-total">—</div></div>
+        <div class="kpi kpi-click" onclick="verKpi('B','vencido')"><div class="kpi-label">Vencido ↗</div><div class="kpi-value neg" id="kpiB-vencido">—</div></div>
+        <div class="kpi kpi-click" onclick="verKpi('B','avencer')"><div class="kpi-label">A vencer ↗</div><div class="kpi-value" id="kpiB-avencer">—</div></div>
       </div>
       <div class="kpi-row" style="border-top:1px solid #f0f0f0">
-        <div class="kpi"><div class="kpi-label">Próx. 7 días</div><div class="kpi-value" id="kpiB-d7">—</div></div>
-        <div class="kpi"><div class="kpi-label">De 7 a 15 días</div><div class="kpi-value" id="kpiB-d15">—</div></div>
-        <div class="kpi"><div class="kpi-label">Más de 15 días</div><div class="kpi-value" id="kpiB-d15plus">—</div></div>
+        <div class="kpi kpi-click" onclick="verKpi('B','d7')"><div class="kpi-label">Próx. 7 días ↗</div><div class="kpi-value" id="kpiB-d7">—</div></div>
+        <div class="kpi kpi-click" onclick="verKpi('B','d15')"><div class="kpi-label">De 7 a 15 días ↗</div><div class="kpi-value" id="kpiB-d15">—</div></div>
+        <div class="kpi kpi-click" onclick="verKpi('B','d15plus')"><div class="kpi-label">Más de 15 días ↗</div><div class="kpi-value" id="kpiB-d15plus">—</div></div>
       </div>
       <div class="kpi-row" style="border-top:1px solid #f0f0f0">
-        <div class="kpi"><div class="kpi-label">Difícil cobro (excluido)</div><div class="kpi-value dc" id="kpiB-dc">—</div></div>
+        <div class="kpi kpi-click" onclick="verDificilCobro('B')"><div class="kpi-label">Difícil cobro (excluido) ↗</div><div class="kpi-value dc" id="kpiB-dc">—</div></div>
       </div>
     </div>
     <div class="cf-table-wrap"><table>
@@ -94,6 +94,27 @@
 
 </div>
 
-<script src="js/app.js?v=20260922a"></script>
+<!-- MODAL DE DETALLE — un solo modal reutilizado por todos los KPIs
+     clickeables (Total a cobrar, Vencido, A vencer, buckets de días,
+     Difícil cobro), lo llena verKpi()/verDificilCobro() según cuál se tocó. -->
+<div class="excl-overlay" id="excl-overlay" onclick="if(event.target===this)cerrarExcluidos()">
+  <div class="excl-modal">
+    <div class="excl-head">
+      <div>
+        <div class="excl-title" id="excl-title">Detalle</div>
+        <div class="excl-sub" id="excl-sub"></div>
+      </div>
+      <button class="excl-close" onclick="cerrarExcluidos()">×</button>
+    </div>
+    <div class="excl-body">
+      <table class="excl-table">
+        <thead><tr><th>Cliente</th><th id="excl-col2">Detalle</th><th class="r">Filas</th><th class="r">Importe</th></tr></thead>
+        <tbody id="excl-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js?v=20260924a"></script>
 </body>
 </html>
