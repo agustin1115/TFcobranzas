@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/tfcarnes.css?v=20260924b">
+<link rel="stylesheet" href="css/tfcarnes.css?v=20260924c">
 </head>
 <body>
 <div id="loading-bar"></div>
@@ -49,9 +49,6 @@
       <div class="kpi-row" style="border-top:1px solid #f0f0f0">
         <div class="kpi kpi-click" onclick="verAResolver('A')"><div class="kpi-label">A resolver (excluido) ↗</div><div class="kpi-value dc" id="kpiA-dc">—</div></div>
       </div>
-      <div class="kpi-row" style="border-top:1px solid #f0f0f0">
-        <div class="kpi kpi-click" onclick="verExcluidos('A')"><div class="kpi-label">Excluidos ↗</div><div class="kpi-value excl" id="kpiA-excl">—</div><div class="kpi-sub" id="kpiA-excl-sub"></div></div>
-      </div>
     </div>
     <div class="cf-table-wrap"><table>
       <thead class="thead-tf"><tr>
@@ -81,9 +78,6 @@
       <div class="kpi-row" style="border-top:1px solid #f0f0f0">
         <div class="kpi kpi-click" onclick="verAResolver('B')"><div class="kpi-label">A resolver (excluido) ↗</div><div class="kpi-value dc" id="kpiB-dc">—</div></div>
       </div>
-      <div class="kpi-row" style="border-top:1px solid #f0f0f0">
-        <div class="kpi kpi-click" onclick="verExcluidos('B')"><div class="kpi-label">Excluidos ↗</div><div class="kpi-value excl" id="kpiB-excl">—</div><div class="kpi-sub" id="kpiB-excl-sub"></div></div>
-      </div>
     </div>
     <div class="cf-table-wrap"><table>
       <thead class="thead-tf"><tr>
@@ -100,26 +94,26 @@
 
 </div>
 
-<!-- MODAL EXCLUIDOS — se llena dinámicamente al tocar la tarjeta "Excluidos"
-     de cada archivo, con lo que devuelve getExcluidos() en ese momento. -->
+<!-- MODAL A RESOLVER — se llena dinámicamente al tocar la tarjeta "A resolver
+     (excluido)" de cada archivo, con lo que devuelve getAResolverDetalle(). -->
 <div class="excl-overlay" id="excl-overlay" onclick="if(event.target===this)cerrarExcluidos()">
   <div class="excl-modal">
     <div class="excl-head">
       <div>
-        <div class="excl-title" id="excl-title">Excluidos</div>
+        <div class="excl-title" id="excl-title">A resolver (excluido)</div>
         <div class="excl-sub" id="excl-sub"></div>
       </div>
       <button class="excl-close" onclick="cerrarExcluidos()">×</button>
     </div>
     <div class="excl-body">
       <table class="excl-table">
-        <thead><tr><th>Cliente</th><th>Por qué se excluye</th><th class="r">Filas</th><th class="r">Importe</th></tr></thead>
+        <thead><tr><th>Cliente</th><th>Por qué está "a resolver"</th><th class="r">Filas</th><th class="r">Importe</th></tr></thead>
         <tbody id="excl-tbody"></tbody>
       </table>
     </div>
   </div>
 </div>
 
-<script src="js/tfcarnes.js?v=20260924b"></script>
+<script src="js/tfcarnes.js?v=20260924c"></script>
 </body>
 </html>

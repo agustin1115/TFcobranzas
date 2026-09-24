@@ -92,10 +92,9 @@ tr.soon-row .dsub{color:#8a6800}
 .leeme-btn{display:block;text-align:center;margin:28px auto 10px;max-width:360px;padding:14px 22px;border-radius:10px;background:#fff;border:1.5px dashed var(--tfc-primary);color:var(--tfc-primary);font-weight:600;font-size:13px;text-decoration:none;transition:background .15s,color .15s}
 .leeme-btn:hover{background:var(--tfc-primary);color:#fff}
 
-/* ─── Tarjeta "Excluidos" (clickeable) + modal de detalle ─── */
+/* ─── Tarjeta "A resolver (excluido)" clickeable + modal de detalle ─── */
 .kpi-click{cursor:pointer;transition:background .12s}
 .kpi-click:hover{background:var(--tfc-light)}
-.kpi-value.excl{color:#8c8f85}
 
 .excl-overlay{position:fixed;inset:0;background:rgba(20,85,51,.35);z-index:300;display:none;overflow-y:auto;padding:28px 16px}
 .excl-overlay.open{display:block}

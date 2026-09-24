@@ -144,17 +144,6 @@ function esExcluido(name){
   return EXCLUIDOS_PARCIALES.some(p => n.indexOf(p) > -1);
 }
 
-// Misma lógica que esExcluido(), pero devuelve POR QUÉ en vez de solo sí/no —
-// se usa nada más para el detalle del modal "Excluidos", no cambia esExcluido().
-function razonExclusion(name){
-  if (!name || name === 'NaN') return 'Sin nombre de cliente (vacío o "NaN")';
-  const n = name.trim().toUpperCase();
-  if (EXCLUDED.has(n)) return 'Está en la lista de excluidos (nombre exacto)';
-  const frag = EXCLUIDOS_PARCIALES.find(p => n.indexOf(p) > -1);
-  if (frag) return `El nombre contiene "${frag}" (coincidencia parcial)`;
-  return null;
-}
-
 // Clientes "a resolver": quedan afuera del "Total a cobrar" normal y se muestran
 // aparte (equivalente a Difícil Cobro en el dashboard de Trade Food) — copiado 1 a 1
 // de RESOLVER_CLIENTS / isResolver del sistema de Cobranzas de TF Carnes.
@@ -300,27 +289,6 @@ function processSheet(rows){
   })).filter(r => r.cliente && r.vencimiento && !esExcluido(r.cliente));
 }
 
-// Junta, por cliente, todas las filas del Sheet que esExcluido() saca de la
-// proyección — para mostrarlas en el modal "Excluidos" con el motivo de cada
-// una. No cambia processSheet ni nada de lo que ya se calculaba, solo mira
-// las mismas filas crudas desde otro ángulo.
-function getExcluidos(rows){
-  const porCliente = new Map();
-  rows.forEach(row => {
-    const cliente = String(row['Razón social'] || '').trim();
-    if (!esExcluido(cliente)) return;
-    const importe = parseImporte(row['Importe'] !== '' ? row['Importe'] : row['Importe__f']);
-    const key = cliente || '(sin nombre)';
-    if (!porCliente.has(key)) {
-      porCliente.set(key, { cliente: cliente || '(sin nombre)', razon: razonExclusion(cliente), importe: 0, filas: 0 });
-    }
-    const r = porCliente.get(key);
-    r.importe += importe;
-    r.filas += 1;
-  });
-  return [...porCliente.values()].sort((a, b) => Math.abs(b.importe) - Math.abs(a.importe));
-}
-
 // Clasifica cada cliente combinando AMBOS archivos: un cliente entra a la proyección
 // si tiene deuda pendiente en A o en B (sumadas), y recién ahí se le netea el
 // "a aplicar" propio de CADA archivo por separado.
@@ -416,13 +384,10 @@ function buildProyeccion(datos, key, porCliente){
 // Estado de orden de la tabla y última proyección calculada, por panel (A/B).
 const sortState = { A: { col: 'fecha', dir: 1 }, B: { col: 'fecha', dir: 1 } };
 const ultimaProyeccion = { A: null, B: null };
-const ultimosExcluidos = { A: [], B: [] };
 const ultimoAResolverDetalle = { A: [], B: [] };
 
 function fmtExcl(n){ const s = fm(Math.abs(n)); return n < 0 ? `-${s}` : s; }
 
-// Un solo modal reutilizado por "Excluidos" y "A resolver (excluido)" — cambia
-// el título y la lista, la tabla de abajo es la misma para los dos.
 function abrirModalDetalle(titulo, lista, vacioMsg){
   const totalImporte = lista.reduce((s, r) => s + r.importe, 0);
   const totalFilas = lista.reduce((s, r) => s + r.filas, 0);
@@ -440,9 +405,6 @@ function abrirModalDetalle(titulo, lista, vacioMsg){
     : `<tr><td colspan="4" class="no-data">${vacioMsg}</td></tr>`;
   document.getElementById('excl-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
-}
-function verExcluidos(tag){
-  abrirModalDetalle(`Excluidos · Archivo ${tag}`, ultimosExcluidos[tag] || [], 'No se excluyó ningún cliente en este archivo');
 }
 function verAResolver(tag){
   abrirModalDetalle(`A resolver (excluido) · Archivo ${tag}`, ultimoAResolverDetalle[tag] || [], 'No hay clientes "a resolver" en este archivo');
@@ -510,13 +472,6 @@ function renderPanel(tag, datos, key, porCliente){
   document.getElementById(`kpi${tag}-d15`).textContent = fm(p.d15);
   document.getElementById(`kpi${tag}-d15plus`).textContent = fm(p.dMas);
 
-  const excl = ultimosExcluidos[tag] || [];
-  const exclTotal = excl.reduce((s, r) => s + r.importe, 0);
-  const elExclVal = document.getElementById(`kpi${tag}-excl`);
-  if (elExclVal) elExclVal.textContent = fmtExcl(exclTotal);
-  const elExclSub = document.getElementById(`kpi${tag}-excl-sub`);
-  if (elExclSub) elExclSub.textContent = `${excl.length} clientes — tocar para ver el detalle`;
-
   renderTabla(tag);
 }
 
@@ -528,11 +483,8 @@ async function loadAllData(){
   clearMessages();
   try {
     const [gA, gB] = await Promise.all([loadSheetJSONP(TAB_A), loadSheetJSONP(TAB_B)]);
-    const rowsA = gvizToRows(gA), rowsB = gvizToRows(gB);
-    const datosA = processSheet(rowsA);
-    const datosB = processSheet(rowsB);
-    ultimosExcluidos.A = getExcluidos(rowsA);
-    ultimosExcluidos.B = getExcluidos(rowsB);
+    const datosA = processSheet(gvizToRows(gA));
+    const datosB = processSheet(gvizToRows(gB));
     const porCliente = clasificarClientes(datosA, datosB);
     document.getElementById('fecha-carga').textContent =
       'Actualizado: ' + new Date().toLocaleString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
