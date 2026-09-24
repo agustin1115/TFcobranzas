@@ -131,16 +131,28 @@ const EXCLUDED = new Set([
   'MARIANO BLUMENFELD'
 ].map(s => s.trim().toUpperCase()));
 
+const EXCLUIDOS_PARCIALES = ['TARDITI','DELTACAR','CASNEM','GUIDO JORGE MU','ROBOL','RINALDI',
+  'SODECAR','PAMPEANAS','ALBERDI','GANADERA GRANADA','ETCHEVEHERE','HACIENDAS DEL NORTE',
+  'GLOBALWING','VILLAMAGNA','SENASA','LUCANI','ORELLA','ROMERO VACA','LA MERIDIONAL',
+  'MARCELO RAUL LAURO','NETLATIN','SUMATIK','BLUMENFELD'];
+
 function esExcluido(name){
   if (!name || name === 'NaN') return true;
   const n = name.trim().toUpperCase();
   if (EXCLUDED.has(n)) return true;
   // Match parcial para apellidos que pueden venir con distintos nombres
-  const parciales = ['TARDITI','DELTACAR','CASNEM','GUIDO JORGE MU','ROBOL','RINALDI',
-    'SODECAR','PAMPEANAS','ALBERDI','GANADERA GRANADA','ETCHEVEHERE','HACIENDAS DEL NORTE',
-    'GLOBALWING','VILLAMAGNA','SENASA','LUCANI','ORELLA','ROMERO VACA','LA MERIDIONAL',
-    'MARCELO RAUL LAURO','NETLATIN','SUMATIK','BLUMENFELD'];
-  return parciales.some(p => n.indexOf(p) > -1);
+  return EXCLUIDOS_PARCIALES.some(p => n.indexOf(p) > -1);
+}
+
+// Misma lógica que esExcluido(), pero devuelve POR QUÉ en vez de solo sí/no —
+// se usa nada más para el detalle del modal "Excluidos", no cambia esExcluido().
+function razonExclusion(name){
+  if (!name || name === 'NaN') return 'Sin nombre de cliente (vacío o "NaN")';
+  const n = name.trim().toUpperCase();
+  if (EXCLUDED.has(n)) return 'Está en la lista de excluidos (nombre exacto)';
+  const frag = EXCLUIDOS_PARCIALES.find(p => n.indexOf(p) > -1);
+  if (frag) return `El nombre contiene "${frag}" (coincidencia parcial)`;
+  return null;
 }
 
 // Clientes "a resolver": quedan afuera del "Total a cobrar" normal y se muestran
@@ -256,6 +268,27 @@ function processSheet(rows){
   })).filter(r => r.cliente && r.vencimiento && !esExcluido(r.cliente));
 }
 
+// Junta, por cliente, todas las filas del Sheet que esExcluido() saca de la
+// proyección — para mostrarlas en el modal "Excluidos" con el motivo de cada
+// una. No cambia processSheet ni nada de lo que ya se calculaba, solo mira
+// las mismas filas crudas desde otro ángulo.
+function getExcluidos(rows){
+  const porCliente = new Map();
+  rows.forEach(row => {
+    const cliente = String(row['Razón social'] || '').trim();
+    if (!esExcluido(cliente)) return;
+    const importe = parseImporte(row['Importe'] !== '' ? row['Importe'] : row['Importe__f']);
+    const key = cliente || '(sin nombre)';
+    if (!porCliente.has(key)) {
+      porCliente.set(key, { cliente: cliente || '(sin nombre)', razon: razonExclusion(cliente), importe: 0, filas: 0 });
+    }
+    const r = porCliente.get(key);
+    r.importe += importe;
+    r.filas += 1;
+  });
+  return [...porCliente.values()].sort((a, b) => Math.abs(b.importe) - Math.abs(a.importe));
+}
+
 // Clasifica cada cliente combinando AMBOS archivos: un cliente entra a la proyección
 // si tiene deuda pendiente en A o en B (sumadas), y recién ahí se le netea el
 // "a aplicar" propio de CADA archivo por separado.
@@ -351,6 +384,33 @@ function buildProyeccion(datos, key, porCliente){
 // Estado de orden de la tabla y última proyección calculada, por panel (A/B).
 const sortState = { A: { col: 'fecha', dir: 1 }, B: { col: 'fecha', dir: 1 } };
 const ultimaProyeccion = { A: null, B: null };
+const ultimosExcluidos = { A: [], B: [] };
+
+function fmtExcl(n){ const s = fm(Math.abs(n)); return n < 0 ? `-${s}` : s; }
+
+function verExcluidos(tag){
+  const lista = ultimosExcluidos[tag] || [];
+  const totalImporte = lista.reduce((s, r) => s + r.importe, 0);
+  const totalFilas = lista.reduce((s, r) => s + r.filas, 0);
+  document.getElementById('excl-title').textContent = `Excluidos · Archivo ${tag}`;
+  document.getElementById('excl-sub').textContent =
+    `${lista.length} clientes · ${totalFilas} filas del Sheet · ${fmtExcl(totalImporte)} en total`;
+  const tbody = document.getElementById('excl-tbody');
+  tbody.innerHTML = lista.length
+    ? lista.map(r => `<tr>
+        <td>${r.cliente}</td>
+        <td class="excl-razon">${r.razon || '—'}</td>
+        <td class="r">${r.filas}</td>
+        <td class="r">${fmtExcl(r.importe)}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="4" class="no-data">No se excluyó ningún cliente en este archivo</td></tr>';
+  document.getElementById('excl-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function cerrarExcluidos(){
+  document.getElementById('excl-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
 
 function ordenarTabla(tag, columna){
   const st = sortState[tag];
@@ -409,6 +469,13 @@ function renderPanel(tag, datos, key, porCliente){
   document.getElementById(`kpi${tag}-d15`).textContent = fm(p.d15);
   document.getElementById(`kpi${tag}-d15plus`).textContent = fm(p.dMas);
 
+  const excl = ultimosExcluidos[tag] || [];
+  const exclTotal = excl.reduce((s, r) => s + r.importe, 0);
+  const elExclVal = document.getElementById(`kpi${tag}-excl`);
+  if (elExclVal) elExclVal.textContent = fmtExcl(exclTotal);
+  const elExclSub = document.getElementById(`kpi${tag}-excl-sub`);
+  if (elExclSub) elExclSub.textContent = `${excl.length} clientes — tocar para ver el detalle`;
+
   renderTabla(tag);
 }
 
@@ -420,8 +487,11 @@ async function loadAllData(){
   clearMessages();
   try {
     const [gA, gB] = await Promise.all([loadSheetJSONP(TAB_A), loadSheetJSONP(TAB_B)]);
-    const datosA = processSheet(gvizToRows(gA));
-    const datosB = processSheet(gvizToRows(gB));
+    const rowsA = gvizToRows(gA), rowsB = gvizToRows(gB);
+    const datosA = processSheet(rowsA);
+    const datosB = processSheet(rowsB);
+    ultimosExcluidos.A = getExcluidos(rowsA);
+    ultimosExcluidos.B = getExcluidos(rowsB);
     const porCliente = clasificarClientes(datosA, datosB);
     document.getElementById('fecha-carga').textContent =
       'Actualizado: ' + new Date().toLocaleString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
