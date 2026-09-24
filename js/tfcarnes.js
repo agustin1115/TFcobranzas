@@ -128,13 +128,25 @@ const EXCLUDED = new Set([
   'NETLATIN S.R.L.',
   'P & Z S.A.',
   'SUMATIK SRL',
-  'MARIANO BLUMENFELD'
+  'MARIANO BLUMENFELD',
+  // Agregados a pedido: estos 6 no se toman en cuenta en ningún lado.
+  'CARNES VIREYES S.A',
+  'AUTOSERVICIO MAYORISTA DIARCO SA',
+  'FRIMARC - INDUSTIRA E COMERCIO, SA',
+  'OPEN ROUTE SAS',
+  'SUDAMBEEF TRADING S.A.',
+  'TIMBRO TRADING (AC COMERCIAL IMP E EXP LTDA)'
 ].map(s => s.trim().toUpperCase()));
 
 const EXCLUIDOS_PARCIALES = ['TARDITI','DELTACAR','CASNEM','GUIDO JORGE MU','ROBOL','RINALDI',
   'SODECAR','PAMPEANAS','ALBERDI','GANADERA GRANADA','ETCHEVEHERE','HACIENDAS DEL NORTE',
   'GLOBALWING','VILLAMAGNA','SENASA','LUCANI','ORELLA','ROMERO VACA','LA MERIDIONAL',
-  'MARCELO RAUL LAURO','NETLATIN','SUMATIK','BLUMENFELD'];
+  'MARCELO RAUL LAURO','NETLATIN','SUMATIK','BLUMENFELD',
+  // Red de contención para los 6 agregados arriba: por si en el Sheet el nombre
+  // viene con alguna variante de tipeo/espaciado distinta a la que me pasaste
+  // (ej. "INDUSTIRA" vs "INDUSTRIA"), esto igual los agarra por el fragmento
+  // más distintivo del nombre.
+  'VIREYES','DIARCO','FRIMARC','OPEN ROUTE','SUDAMBEEF','TIMBRO TRADING','AC COMERCIAL'];
 
 function esExcluido(name){
   if (!name || name === 'NaN') return true;
@@ -327,7 +339,10 @@ function buildProyeccion(datos, key, porCliente){
     const elegible = r && (r.debeA + r.debeB) > 0;
     if (!elegible) return; // sin deuda pendiente en NINGÚN archivo: no aporta ni resta
     if (esAResolver(d.cliente)) { if (d.importe > 0) aResolver += d.importe; return; }
-    if (d.importe > 0) {
+    // Las notas de crédito (importe negativo) también restan de Vencido/A vencer,
+    // en el bucket que le corresponda según SU PROPIA fecha de vencimiento — antes
+    // solo se netaban contra el Total (aplicarA/aplicarB), acá quedaban afuera.
+    if (d.importe !== 0) {
       const dias = calcularDias(d.vencimiento);
       if (dias <= 0) vencido += d.importe;
       else if (dias <= 7) d7 += d.importe;
@@ -415,7 +430,9 @@ function getBucketDetalle(datos, porCliente, filtroDias){
   datos.forEach(d => {
     const r = porCliente[d.cliente];
     const elegible = r && (r.debeA + r.debeB) > 0;
-    if (!elegible || esAResolver(d.cliente) || d.importe <= 0) return;
+    // Incluye notas de crédito (importe < 0): restan del bucket que les toca
+    // según su propia fecha, igual que en buildProyeccion().
+    if (!elegible || esAResolver(d.cliente) || d.importe === 0) return;
     const dias = calcularDias(d.vencimiento);
     if (!filtroDias(dias)) return;
     if (!map.has(d.cliente)) map.set(d.cliente, { cliente: d.cliente, importe: 0, filas: 0, diasMin: dias, diasMax: dias });
