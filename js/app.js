@@ -159,7 +159,8 @@ function agregarAFecha(porFecha, fecha, cliente, importe){
 //   Próx. 7 días   → 1 a 7 días
 //   De 7 a 15 días → 8 a 15 días
 //   Más de 15 días → 16+ días
-// Vencido + Próx.7 + De7a15 + Más15 = deuda bruta total (antes de netear "a aplicar").
+// Vencido + Próx.7 + De7a15 + Más15 = Total a cobrar (deuda bruta, SIN netear
+// "a aplicar" — a pedido tuyo el Total ya no resta las notas de crédito).
 // Difícil Cobro queda afuera de estos buckets y del total: se muestra aparte en su
 // propia tarjeta. TF Carnes se trata como un cliente normal (sin exclusión).
 function buildProyeccion(datos, key, porCliente){
@@ -179,12 +180,16 @@ function buildProyeccion(datos, key, porCliente){
       agregarAFecha(porFecha, d.vencimiento, d.cliente, d.importe);
     }
   });
+  // Total a cobrar = solo "debe" (Vencido + A vencer), sin restar "a aplicar"
+  // (notas de crédito) — a pedido tuyo. aplicarA/aplicarB se siguen guardando
+  // en clasificarClientes() porque getTotalCobrarDetalle() todavía las
+  // muestra como dato informativo en el modal de detalle, pero ya no afectan
+  // este número.
   let totalCobrar = 0;
   Object.entries(porCliente).forEach(([cliente, r]) => {
     if ((r.debeA + r.debeB) <= 0 || esDificilCobro(cliente)) return;
     const debe = key === 'A' ? r.debeA : r.debeB;
-    const aplicar = key === 'A' ? r.aplicarA : r.aplicarB;
-    totalCobrar += debe - aplicar;
+    totalCobrar += debe;
   });
 
   // Lo vencido hace más de 30 días se acumula en UNA sola fila (sin desglose por
@@ -254,13 +259,15 @@ function getTotalCobrarDetalle(datos, key, porCliente){
   Object.entries(porCliente).forEach(([cliente, r]) => {
     if ((r.debeA + r.debeB) <= 0 || esDificilCobro(cliente)) return;
     const debe = key === 'A' ? r.debeA : r.debeB;
+    if (debe === 0) return; // elegible por el otro archivo, acá no tiene filas
     const aplicar = key === 'A' ? r.aplicarA : r.aplicarB;
-    if (debe === 0 && aplicar === 0) return; // elegible por el otro archivo, acá no tiene filas
     list.push({
       cliente,
-      razon: aplicar > 0 ? `Debe ${fmtExcl(debe)} − aplica ${fmtExcl(aplicar)}` : `Debe ${fmtExcl(debe)}`,
+      // "Total a cobrar" ya no resta "a aplicar" — se muestra solo como dato
+      // informativo (no afecta el importe de la fila, que es "debe" nomás).
+      razon: aplicar > 0 ? `Tiene ${fmtExcl(aplicar)} aplicado (nota de crédito), ya no se resta` : '',
       filas: filasPorCliente.get(cliente) || 0,
-      importe: debe - aplicar,
+      importe: debe,
     });
   });
   return list.sort((a, b) => b.importe - a.importe);

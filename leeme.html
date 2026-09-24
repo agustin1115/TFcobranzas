@@ -24,9 +24,10 @@
     <div class="hero-kicker">Cuentas a Cobrar · Documentación</div>
     <h1>De dónde sale cada número</h1>
     <p>Los dos dashboards (Trade Food y TF Carnes) leen en vivo el mismo tipo de Google
-    Sheet y aplican exactamente la misma lógica de cálculo — solo cambian el Sheet y las
-    listas de clientes propias de cada empresa. Esta página explica, paso a paso, cómo
-    se llega desde una fila del Excel hasta cada número que ves en pantalla.</p>
+    Sheet y aplican casi la misma lógica de cálculo — cambian el Sheet, las listas de
+    clientes propias de cada empresa, y desde hace poco también cómo se calcula el "Total
+    a cobrar" (sección 5). Esta página explica, paso a paso, cómo se llega desde una fila
+    del Excel hasta cada número que ves en pantalla.</p>
   </div>
 
   <div class="toc">
@@ -36,9 +37,9 @@
       <li><span class="n">2</span><a href="#excluidos">Cuentas excluidas</a></li>
       <li><span class="n">3</span><a href="#combinar">Combinar Archivo A y B por cliente</a></li>
       <li><span class="n">4</span><a href="#aparte">Clientes que se muestran aparte</a></li>
-      <li><span class="n">5</span><a href="#total">El "Total a cobrar" (neto)</a></li>
-      <li><span class="n">6</span><a href="#buckets">Los 4 buckets de días (bruto)</a></li>
-      <li><span class="n">7</span><a href="#reconciliacion">Por qué el Total ≠ suma de los buckets</a></li>
+      <li><span class="n">5</span><a href="#total">El "Total a cobrar" (neto en TF Carnes, bruto en Trade Food)</a></li>
+      <li><span class="n">6</span><a href="#buckets">Los 4 buckets de días (siempre bruto)</a></li>
+      <li><span class="n">7</span><a href="#reconciliacion">Por qué el Total ≠ suma de los buckets (solo en TF Carnes)</a></li>
       <li><span class="n">8</span><a href="#tabla">La tabla: Fecha · Días · Empresas</a></li>
       <li><span class="n">9</span><a href="#interaccion">Ordenar, zoom y actualizar</a></li>
       <li><span class="n">10</span><a href="#diferencias">Trade Food vs. TF Carnes</a></li>
@@ -111,20 +112,29 @@ flowchart TD
   </section>
 
   <section id="total">
-    <h2><span class="num">5</span>El "Total a cobrar" (neto)</h2>
-    <p class="lead">Es la deuda real, ya descontadas las notas de crédito de cada cliente.</p>
-    <p>Para cada archivo (A o B), el Total a cobrar es la suma, sobre todos los clientes
-    elegibles y no-excluidos, de su deuda en ese archivo <b>menos</b> su nota de crédito en
-    ese mismo archivo:</p>
-    <div class="formula">Total a cobrar (archivo) = Σ (debe<sub>archivo</sub> − aplicar<sub>archivo</sub>)   [para cada cliente elegible, no difícil cobro / a resolver]</div>
-    <div class="callout ex"><b>Ejemplo ilustrativo:</b> un cliente debe $100.000 en Archivo A
-    y tiene una nota de crédito de $30.000 también en Archivo A → aporta $70.000 al Total de
-    A. Si esa misma nota de crédito estuviera en el Archivo B, no se resta de A — cada
-    archivo se netea con lo suyo.</div>
+    <h2><span class="num">5</span>El "Total a cobrar": distinto en cada empresa</h2>
+    <p class="lead">TF Carnes lo calcula neto (resta notas de crédito); Trade Food lo calcula bruto (no resta nada).</p>
+    <p>Hasta acá el mecanismo es idéntico en las dos empresas. En este punto se separan, a
+    pedido explícito para Trade Food:</p>
+    <div class="callout warn"><b>TF Carnes</b> — el Total a cobrar sigue siendo <b>neto</b>:
+    para cada archivo (A o B), es la suma, sobre todos los clientes elegibles y
+    no-excluidos, de su deuda en ese archivo <b>menos</b> su nota de crédito en ese mismo
+    archivo.
+    <div class="formula">Total a cobrar (TF Carnes) = Σ (debe<sub>archivo</sub> − aplicar<sub>archivo</sub>)</div>
+    <i>Ejemplo:</i> un cliente debe $100.000 en Archivo A y tiene una nota de crédito de
+    $30.000 también en Archivo A → aporta $70.000 al Total de A.</div>
+    <div class="callout ex"><b>Trade Food</b> — el Total a cobrar es <b>bruto</b>: es la
+    suma de la deuda de cada cliente elegible y no-excluido, <b>sin restar ninguna nota de
+    crédito</b>. Las notas de crédito siguen existiendo en el Sheet y siguen determinando
+    qué clientes son "elegibles" (sección 3), pero ya no achican el número de la tarjeta.
+    <div class="formula">Total a cobrar (Trade Food) = Σ debe<sub>archivo</sub></div>
+    <i>Mismo ejemplo:</i> ese cliente aporta los $100.000 completos al Total de A — la nota
+    de crédito de $30.000 no se resta (podés verla igual, marcada como informativa, en el
+    detalle de la tarjeta).</div>
   </section>
 
   <section id="buckets">
-    <h2><span class="num">6</span>Los 4 buckets de días (bruto)</h2>
+    <h2><span class="num">6</span>Los 4 buckets de días (siempre bruto, en las dos empresas)</h2>
     <p class="lead">Vencido, Próx. 7 días, De 7 a 15 días, Más de 15 días.</p>
     <p>Cada factura (importe positivo) de un cliente elegible y no-excluido cae en
     <b>uno solo</b> de estos 4 buckets, según cuántos días faltan hasta su vencimiento —
@@ -135,19 +145,20 @@ flowchart TD
       <span class="chip amber">De 7 a 15 días → 8 a 15 días</span>
       <span class="chip green">Más de 15 días → 16+ días</span>
     </div>
-    <p>A diferencia del Total, estos 4 números son <b>brutos</b>: suman directamente el
+    <p>En las <b>dos empresas</b>, estos 4 números son <b>brutos</b>: suman directamente el
     importe de cada factura, sin restar ninguna nota de crédito. Las notas de crédito no
-    tienen fecha de vencimiento propia, así que no hay ningún bucket al que asignarlas.</p>
+    tienen fecha de vencimiento propia, así que no hay ningún bucket al que asignarlas —
+    esto no cambió con el ajuste de Trade Food.</p>
   </section>
 
   <section id="reconciliacion">
-    <h2><span class="num">7</span>Por qué el Total ≠ suma de los 4 buckets</h2>
-    <p class="lead">No es un error — es la diferencia entre bruto y neto.</p>
-    <p>Si sumás Vencido + Próx. 7 días + De 7 a 15 días + Más de 15 días vas a obtener la
-    deuda <b>bruta</b> total. Eso casi nunca coincide con la tarjeta "Total a cobrar", que es
-    <b>neta</b> (ya con las notas de crédito restadas). La diferencia entre ambos números es,
-    siempre, exactamente el total de notas de crédito ("a aplicar") de los clientes
-    elegibles de ese archivo.</p>
+    <h2><span class="num">7</span>Por qué el Total ≠ suma de los 4 buckets (solo en TF Carnes)</h2>
+    <p class="lead">En TF Carnes es la diferencia entre bruto y neto. En Trade Food, coinciden exacto.</p>
+    <div class="callout warn"><b>TF Carnes:</b> si sumás Vencido + Próx. 7 días + De 7 a 15
+    días + Más de 15 días vas a obtener la deuda <b>bruta</b> total. Eso casi nunca coincide
+    con la tarjeta "Total a cobrar", que sigue siendo <b>neta</b> (con las notas de crédito
+    restadas). La diferencia entre ambos números es, siempre, exactamente el total de notas
+    de crédito ("a aplicar") de los clientes elegibles de ese archivo.
     <div class="mermaid">
 flowchart LR
   subgraph bruto[" "]
@@ -156,10 +167,16 @@ flowchart LR
   end
   bruto -->|"− Notas de crédito<br/>de clientes elegibles"| N["Total a cobrar (NETO)<br/>lo que muestra la tarjeta"]
     </div>
-    <div class="callout ex"><b>Ejemplo ilustrativo</b> (con números redondos, no son los
-    reales de hoy): si los 4 buckets suman $4.475M y los clientes elegibles tienen en total
-    $1.115M en notas de crédito sin aplicar, el Total a cobrar que ves en la tarjeta es
-    $4.475M − $1.115M = <b>$3.360M</b>.</div>
+    <i>Ejemplo ilustrativo</i> (números redondos): si los 4 buckets suman $4.475M y los
+    clientes elegibles tienen en total $1.115M en notas de crédito, el Total que ves en la
+    tarjeta es $4.475M − $1.115M = <b>$3.360M</b>.</div>
+    <div class="callout ex"><b>Trade Food:</b> como el Total ya no resta las notas de
+    crédito (sección 5), acá <b>sí coincide exacto</b> con la suma de los 4 buckets — son
+    literalmente el mismo número, solo que uno lo ves desglosado por antigüedad y el otro
+    como un total único.
+    <div class="formula">Total a cobrar (Trade Food) = Vencido + Próx.7 + De7a15 + Más15</div>
+    Si algún día ves que no coincide, es señal de un bug en el cálculo, no de una
+    diferencia esperada como la de TF Carnes.</div>
   </section>
 
   <section id="tabla">
@@ -200,13 +217,14 @@ flowchart LR
       <tr><td>Pestañas del Sheet</td><td class="tf-cell"><code>A</code> / <code>B</code></td><td class="tfc-cell"><code>Archivo A</code> / <code>Archivo B</code></td></tr>
       <tr><td>Cuentas excluidas</td><td class="tf-cell"><code>CLIENTES_EXCLUIDOS</code></td><td class="tfc-cell"><code>EXCLUDED</code> (incluye matches parciales por apellido)</td></tr>
       <tr><td>Tarjeta "aparte"</td><td class="tf-cell">Difícil cobro (excluido)<br><code>CLIENTES_DIFICIL_COBRO</code></td><td class="tfc-cell">A resolver (excluido)<br><code>RESOLVER_CLIENTES</code></td></tr>
+      <tr><td>"Total a cobrar"</td><td class="tf-cell"><b>Bruto</b> — no resta notas de crédito (sección 5)</td><td class="tfc-cell"><b>Neto</b> — resta notas de crédito (sección 5)</td></tr>
       <tr><td>Colores</td><td class="tf-cell">Bordo Trade Food</td><td class="tfc-cell">Verde TF Carnes</td></tr>
       <tr><td>Archivos</td><td class="tf-cell"><code>index.html</code> / <code>css/style.css</code> / <code>js/app.js</code></td><td class="tfc-cell"><code>tfcarnes.html</code> / <code>css/tfcarnes.css</code> / <code>js/tfcarnes.js</code></td></tr>
     </table>
-    <p>Todo lo demás — la fórmula del Total, los 4 buckets, la tabla, el orden, el zoom —
-    es exactamente el mismo cálculo en ambos dashboards. Son dos apps completamente
-    independientes (no comparten datos ni estado), pero corren el mismo código con
-    distintos parámetros.</p>
+    <p>Todo lo demás — los 4 buckets, la tabla, el orden, el zoom — es exactamente el mismo
+    cálculo en ambos dashboards; la única diferencia real de fórmula es el Total a cobrar
+    (sección 5). Son dos apps completamente independientes (no comparten datos ni estado),
+    pero corren casi el mismo código con distintos parámetros.</p>
   </section>
 
   <hr class="sep">
