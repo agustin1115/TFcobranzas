@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/tfcarnes.css?v=20260924a">
+<link rel="stylesheet" href="css/tfcarnes.css?v=20260924b">
 </head>
 <body>
 <div id="loading-bar"></div>
@@ -47,7 +47,7 @@
         <div class="kpi"><div class="kpi-label">Más de 15 días</div><div class="kpi-value" id="kpiA-d15plus">—</div></div>
       </div>
       <div class="kpi-row" style="border-top:1px solid #f0f0f0">
-        <div class="kpi"><div class="kpi-label">A resolver (excluido)</div><div class="kpi-value dc" id="kpiA-dc">—</div></div>
+        <div class="kpi kpi-click" onclick="verAResolver('A')"><div class="kpi-label">A resolver (excluido) ↗</div><div class="kpi-value dc" id="kpiA-dc">—</div></div>
       </div>
       <div class="kpi-row" style="border-top:1px solid #f0f0f0">
         <div class="kpi kpi-click" onclick="verExcluidos('A')"><div class="kpi-label">Excluidos ↗</div><div class="kpi-value excl" id="kpiA-excl">—</div><div class="kpi-sub" id="kpiA-excl-sub"></div></div>
@@ -79,7 +79,7 @@
         <div class="kpi"><div class="kpi-label">Más de 15 días</div><div class="kpi-value" id="kpiB-d15plus">—</div></div>
       </div>
       <div class="kpi-row" style="border-top:1px solid #f0f0f0">
-        <div class="kpi"><div class="kpi-label">A resolver (excluido)</div><div class="kpi-value dc" id="kpiB-dc">—</div></div>
+        <div class="kpi kpi-click" onclick="verAResolver('B')"><div class="kpi-label">A resolver (excluido) ↗</div><div class="kpi-value dc" id="kpiB-dc">—</div></div>
       </div>
       <div class="kpi-row" style="border-top:1px solid #f0f0f0">
         <div class="kpi kpi-click" onclick="verExcluidos('B')"><div class="kpi-label">Excluidos ↗</div><div class="kpi-value excl" id="kpiB-excl">—</div><div class="kpi-sub" id="kpiB-excl-sub"></div></div>
@@ -120,6 +120,6 @@
   </div>
 </div>
 
-<script src="js/tfcarnes.js?v=20260924a"></script>
+<script src="js/tfcarnes.js?v=20260924b"></script>
 </body>
 </html>

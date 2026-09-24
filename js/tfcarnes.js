@@ -176,13 +176,45 @@ const RESOLVER_CLIENTES = new Set([
   'OFICINA TF'
 ].map(s => s.trim().toUpperCase()));
 
+const RESOLVER_PARCIALES = ['HENAN HENG','FRESH EXPRESS','BADANO','PATAGONIA VIANDAS','YAGUAR',
+  'VITAFIL','CARDINAL','ROJAS VERA','VENTA ZONA NORTE','JOCKEY','OFICINA TF'];
+
 function esAResolver(cliente){
   if (!cliente) return false;
   const n = cliente.trim().toUpperCase();
   if (RESOLVER_CLIENTES.has(n)) return true;
-  const parciales = ['HENAN HENG','FRESH EXPRESS','BADANO','PATAGONIA VIANDAS','YAGUAR',
-    'VITAFIL','CARDINAL','ROJAS VERA','VENTA ZONA NORTE','JOCKEY','OFICINA TF'];
-  return parciales.some(p => n.indexOf(p) > -1);
+  return RESOLVER_PARCIALES.some(p => n.indexOf(p) > -1);
+}
+
+// Misma lógica que esAResolver(), pero devuelve POR QUÉ en vez de solo sí/no —
+// se usa nada más para el detalle del modal "A resolver (excluido)".
+function razonAResolver(cliente){
+  if (!cliente) return null;
+  const n = cliente.trim().toUpperCase();
+  if (RESOLVER_CLIENTES.has(n)) return 'Está en la lista "a resolver" (nombre exacto)';
+  const frag = RESOLVER_PARCIALES.find(p => n.indexOf(p) > -1);
+  if (frag) return `El nombre contiene "${frag}" (coincidencia parcial)`;
+  return null;
+}
+
+// Recorre los mismos datos y con el mismo criterio de elegibilidad que usa
+// buildProyeccion() para sumar aResolver (cliente con deuda pendiente en algún
+// archivo + esAResolver() + importe positivo), pero por cliente y con motivo,
+// para el modal. No cambia buildProyeccion ni el número que ya se mostraba.
+function getAResolverDetalle(datos, porCliente){
+  const porClienteMap = new Map();
+  datos.forEach(d => {
+    const r = porCliente[d.cliente];
+    const elegible = r && (r.debeA + r.debeB) > 0;
+    if (!elegible || !esAResolver(d.cliente) || d.importe <= 0) return;
+    if (!porClienteMap.has(d.cliente)) {
+      porClienteMap.set(d.cliente, { cliente: d.cliente, razon: razonAResolver(d.cliente), importe: 0, filas: 0 });
+    }
+    const v = porClienteMap.get(d.cliente);
+    v.importe += d.importe;
+    v.filas += 1;
+  });
+  return [...porClienteMap.values()].sort((a, b) => b.importe - a.importe);
 }
 
 // ── JSONP LOADER — igual que en Cobranzas, funciona desde file:// sin CORS ─
@@ -385,14 +417,16 @@ function buildProyeccion(datos, key, porCliente){
 const sortState = { A: { col: 'fecha', dir: 1 }, B: { col: 'fecha', dir: 1 } };
 const ultimaProyeccion = { A: null, B: null };
 const ultimosExcluidos = { A: [], B: [] };
+const ultimoAResolverDetalle = { A: [], B: [] };
 
 function fmtExcl(n){ const s = fm(Math.abs(n)); return n < 0 ? `-${s}` : s; }
 
-function verExcluidos(tag){
-  const lista = ultimosExcluidos[tag] || [];
+// Un solo modal reutilizado por "Excluidos" y "A resolver (excluido)" — cambia
+// el título y la lista, la tabla de abajo es la misma para los dos.
+function abrirModalDetalle(titulo, lista, vacioMsg){
   const totalImporte = lista.reduce((s, r) => s + r.importe, 0);
   const totalFilas = lista.reduce((s, r) => s + r.filas, 0);
-  document.getElementById('excl-title').textContent = `Excluidos · Archivo ${tag}`;
+  document.getElementById('excl-title').textContent = titulo;
   document.getElementById('excl-sub').textContent =
     `${lista.length} clientes · ${totalFilas} filas del Sheet · ${fmtExcl(totalImporte)} en total`;
   const tbody = document.getElementById('excl-tbody');
@@ -403,9 +437,15 @@ function verExcluidos(tag){
         <td class="r">${r.filas}</td>
         <td class="r">${fmtExcl(r.importe)}</td>
       </tr>`).join('')
-    : '<tr><td colspan="4" class="no-data">No se excluyó ningún cliente en este archivo</td></tr>';
+    : `<tr><td colspan="4" class="no-data">${vacioMsg}</td></tr>`;
   document.getElementById('excl-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+}
+function verExcluidos(tag){
+  abrirModalDetalle(`Excluidos · Archivo ${tag}`, ultimosExcluidos[tag] || [], 'No se excluyó ningún cliente en este archivo');
+}
+function verAResolver(tag){
+  abrirModalDetalle(`A resolver (excluido) · Archivo ${tag}`, ultimoAResolverDetalle[tag] || [], 'No hay clientes "a resolver" en este archivo');
 }
 function cerrarExcluidos(){
   document.getElementById('excl-overlay').classList.remove('open');
@@ -461,6 +501,7 @@ function renderTabla(tag){
 function renderPanel(tag, datos, key, porCliente){
   const p = buildProyeccion(datos, key, porCliente);
   ultimaProyeccion[tag] = p;
+  ultimoAResolverDetalle[tag] = getAResolverDetalle(datos, porCliente);
   document.getElementById(`kpi${tag}-total`).textContent = fm(p.totalCobrar);
   document.getElementById(`kpi${tag}-vencido`).textContent = fm(p.vencido);
   document.getElementById(`kpi${tag}-dc`).textContent = fm(p.aResolver);
