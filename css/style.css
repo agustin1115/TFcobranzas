@@ -46,6 +46,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .kpi-value.dc{color:#8a6800}
 .kpi-sub{font-size:10px;color:#bbb;margin-top:2px}
 
+/* ─── Toggle Por fecha / Por empresa, arriba a la derecha de cada tabla ─── */
+.vista-switch{display:flex;justify-content:flex-end;gap:4px;padding:6px 2px}
+.vista-btn{padding:5px 12px;font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;border:1px solid rgba(0,0,0,.12);border-radius:999px;background:#fff;color:#8c8f85;cursor:pointer;font-family:inherit;transition:background .15s,color .15s}
+.vista-btn.active{background:var(--tf-primary);color:#fff;border-color:var(--tf-primary)}
+.vista-btn:not(.active):hover{background:#f0f0ec}
+
 .cf-table-wrap{overflow-y:auto;overflow-x:auto;max-height:480px;background:#fff;border-radius:0 0 10px 10px;border:1px solid rgba(0,0,0,.08);border-top:none}
 table{width:100%;border-collapse:collapse;font-size:12px}
 thead{position:sticky;top:0;z-index:2}

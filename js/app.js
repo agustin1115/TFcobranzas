@@ -322,12 +322,14 @@ const detallesKpi = {
   B: { total: [], vencido: [], avencer: [], d7: [], d15: [], d15plus: [] },
 };
 
-function abrirModalDetalle(titulo, lista, vacioMsg, col2Label){
+function abrirModalDetalle(titulo, lista, vacioMsg, col2Label, unidad, col1Label){
   const totalImporte = lista.reduce((s, r) => s + r.importe, 0);
   const totalFilas = lista.reduce((s, r) => s + r.filas, 0);
   document.getElementById('excl-title').textContent = titulo;
   document.getElementById('excl-sub').textContent =
-    `${lista.length} clientes · ${totalFilas} filas del Sheet · ${fmtExcl(totalImporte)} en total`;
+    `${lista.length} ${unidad || 'clientes'} · ${totalFilas} filas del Sheet · ${fmtExcl(totalImporte)} en total`;
+  const elCol1 = document.getElementById('excl-col1');
+  if (elCol1) elCol1.textContent = col1Label || 'Cliente';
   const elCol2 = document.getElementById('excl-col2');
   if (elCol2) elCol2.textContent = col2Label || 'Detalle';
   const tbody = document.getElementById('excl-tbody');
@@ -369,12 +371,71 @@ function ordenarTabla(tag, columna){
   renderTabla(tag);
 }
 
+// ── Vista "por empresa": transpone la misma matriz (fecha × cliente) que
+// arma la vista "por fecha" — recorre las filas de buildProyeccion() y
+// agrupa sus r.detalles por cliente en vez de por fecha. La suma de cada
+// cliente da exactamente lo mismo que si se sumaran sus apariciones en la
+// vista por fecha (son los mismos datos, solo reagrupados). ──────────────
+const vistaState = { A: 'fecha', B: 'fecha' };
+function buildFilasPorEmpresa(tag){
+  const p = ultimaProyeccion[tag];
+  if (!p) return [];
+  const porCliente = new Map();
+  for (const r of p.rows) {
+    for (const d of r.detalles) {
+      if (!porCliente.has(d.cliente)) {
+        porCliente.set(d.cliente, { cliente: d.cliente, importe: 0, filas: 0, diasMin: r.dias, diasMax: r.dias, detalles: [] });
+      }
+      const c = porCliente.get(d.cliente);
+      c.importe += d.importe;
+      c.filas += d.filas;
+      if (r.dias < c.diasMin) c.diasMin = r.dias;
+      if (r.dias > c.diasMax) c.diasMax = r.dias;
+      c.detalles.push({ fecha: r.fecha, dias: r.dias, importe: d.importe, filas: d.filas, agrupado: !!r.agrupado });
+    }
+  }
+  return [...porCliente.values()].map(c => ({ ...c, detalles: c.detalles.sort((a, b) => a.dias - b.dias) }));
+}
+
+function setVista(tag, modo){
+  if (vistaState[tag] === modo) return;
+  vistaState[tag] = modo;
+  const btnFecha = document.getElementById(`vista-${tag}-fecha`);
+  const btnEmpresa = document.getElementById(`vista-${tag}-empresa`);
+  if (btnFecha) btnFecha.classList.toggle('active', modo === 'fecha');
+  if (btnEmpresa) btnEmpresa.classList.toggle('active', modo === 'empresa');
+  const thFecha = document.getElementById(`th-${tag}-fecha`);
+  const thDias = document.getElementById(`th-${tag}-dias`);
+  const thEmpresas = document.getElementById(`th-${tag}-empresas`);
+  if (modo === 'empresa') {
+    if (thFecha) thFecha.textContent = 'Cliente';
+    if (thDias) thDias.textContent = 'Vencimientos';
+    if (thEmpresas) thEmpresas.textContent = 'Fechas';
+    sortState[tag] = { col: 'importe', dir: -1 };
+  } else {
+    if (thFecha) thFecha.textContent = 'Fecha';
+    if (thDias) thDias.textContent = 'Días';
+    if (thEmpresas) thEmpresas.textContent = 'Empresas';
+    sortState[tag] = { col: 'fecha', dir: 1 };
+  }
+  renderTabla(tag);
+}
+
 function renderTabla(tag){
   const p = ultimaProyeccion[tag];
   if (!p) return;
+  const modo = vistaState[tag];
   const { col, dir } = sortState[tag];
-  const valor = r => col === 'fecha' ? r.fecha : col === 'dias' ? r.dias : r.importe;
-  const rows = [...p.rows].sort((a, b) => {
+
+  let rows, valor;
+  if (modo === 'empresa') {
+    rows = buildFilasPorEmpresa(tag);
+    valor = r => col === 'fecha' ? r.cliente : col === 'dias' ? r.diasMin : r.importe;
+  } else {
+    rows = [...p.rows];
+    valor = r => col === 'fecha' ? r.fecha : col === 'dias' ? r.dias : r.importe;
+  }
+  rows.sort((a, b) => {
     const va = valor(a), vb = valor(b);
     return (va > vb ? 1 : va < vb ? -1 : 0) * dir;
   });
@@ -390,6 +451,21 @@ function renderTabla(tag){
 
   const tbody = document.getElementById(`tbody-${tag}`);
   if (!rows.length) { tbody.innerHTML = '<tr><td colspan="4" class="no-data">Sin cuentas a cobrar</td></tr>'; return; }
+
+  if (modo === 'empresa') {
+    tbody.innerHTML = rows.map((r, idx) => {
+      const fechas = r.detalles.map(d => `${d.agrupado ? '>30d atrás' : fmDate(d.fecha)} (${fm(d.importe)})`).join(', ');
+      const rc = r.diasMin < 0 ? 'overdue-row' : r.diasMin <= 7 ? 'soon-row' : '';
+      return `<tr class="${rc} row-click" onclick="verFila('${tag}',${idx})">
+        <td><span class="dlabel">${r.cliente}</span></td>
+        <td class="dsub">${fmtDiasRango(r.diasMin, r.diasMax)}</td>
+        <td>${fm(r.importe)}</td>
+        <td class="empresas-cell">${fechas}</td>
+      </tr>`;
+    }).join('');
+    return;
+  }
+
   tbody.innerHTML = rows.map((r, idx) => {
     const empresas = r.detalles.map(x => `${x.cliente} (${fm(x.importe)})`).join(', ') || '—';
     if (r.agrupado) {
@@ -411,13 +487,24 @@ function renderTabla(tag){
   }).join('');
 }
 
-// Click en una fila de la tabla (Vencido/A vencer, por fecha) → abre el
-// mismo modal de detalle que ya usan los KPIs, con el desglose por cliente
-// de esa fila (r.detalles, armado en buildProyeccion()/agregarAFecha()).
+// Click en una fila de la tabla → abre el mismo modal de detalle que ya
+// usan los KPIs. En vista "por fecha" muestra el desglose por cliente de
+// esa fecha; en vista "por empresa" muestra el desglose por fecha de ese
+// cliente (la transpuesta exacta de lo mismo).
 const ultimasFilasRender = { A: [], B: [] };
 function verFila(tag, idx){
   const r = ultimasFilasRender[tag][idx];
   if (!r) return;
+  if (vistaState[tag] === 'empresa') {
+    const lista = r.detalles.map(d => ({
+      cliente: d.agrupado ? 'Vencido hace más de 30 días' : fmDate(d.fecha),
+      razon: d.agrupado ? 'acumulado' : fmtDiasUno(d.dias),
+      filas: d.filas,
+      importe: d.importe,
+    }));
+    abrirModalDetalle(`${r.cliente} · Archivo ${tag}`, lista, 'Sin detalle para este cliente', 'Vencimiento', 'fechas', 'Fecha');
+    return;
+  }
   const titulo = r.agrupado
     ? `Vencido hace más de 30 días · Archivo ${tag}`
     : `${fmDate(r.fecha)} · Archivo ${tag}`;

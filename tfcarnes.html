@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/tfcarnes.css?v=20261002a">
+<link rel="stylesheet" href="css/tfcarnes.css?v=20261002b">
 </head>
 <body>
 <div id="loading-bar"></div>
@@ -50,12 +50,16 @@
         <div class="kpi kpi-click" onclick="verAResolver('A')"><div class="kpi-label">A resolver (excluido) ↗</div><div class="kpi-value dc" id="kpiA-dc">—</div></div>
       </div>
     </div>
+    <div class="vista-switch">
+      <button class="vista-btn active" id="vista-A-fecha" onclick="setVista('A','fecha')">📅 Por fecha</button>
+      <button class="vista-btn" id="vista-A-empresa" onclick="setVista('A','empresa')">🏢 Por empresa</button>
+    </div>
     <div class="cf-table-wrap"><table>
       <thead class="thead-tf"><tr>
         <th id="th-A-fecha" style="text-align:left;min-width:120px" onclick="ordenarTabla('A','fecha')">Fecha</th>
         <th id="th-A-dias" onclick="ordenarTabla('A','dias')">Días</th>
         <th id="th-A-importe" onclick="ordenarTabla('A','importe')">Cuenta a cobrar</th>
-        <th style="text-align:left;cursor:default;min-width:220px">Empresas</th>
+        <th id="th-A-empresas" style="text-align:left;cursor:default;min-width:220px">Empresas</th>
       </tr></thead>
       <tbody id="tbody-A"><tr><td colspan="4" class="no-data">Cargando datos...</td></tr></tbody>
     </table></div>
@@ -79,12 +83,16 @@
         <div class="kpi kpi-click" onclick="verAResolver('B')"><div class="kpi-label">A resolver (excluido) ↗</div><div class="kpi-value dc" id="kpiB-dc">—</div></div>
       </div>
     </div>
+    <div class="vista-switch">
+      <button class="vista-btn active" id="vista-B-fecha" onclick="setVista('B','fecha')">📅 Por fecha</button>
+      <button class="vista-btn" id="vista-B-empresa" onclick="setVista('B','empresa')">🏢 Por empresa</button>
+    </div>
     <div class="cf-table-wrap"><table>
       <thead class="thead-tf"><tr>
         <th id="th-B-fecha" style="text-align:left;min-width:120px" onclick="ordenarTabla('B','fecha')">Fecha</th>
         <th id="th-B-dias" onclick="ordenarTabla('B','dias')">Días</th>
         <th id="th-B-importe" onclick="ordenarTabla('B','importe')">Cuenta a cobrar</th>
-        <th style="text-align:left;cursor:default;min-width:220px">Empresas</th>
+        <th id="th-B-empresas" style="text-align:left;cursor:default;min-width:220px">Empresas</th>
       </tr></thead>
       <tbody id="tbody-B"><tr><td colspan="4" class="no-data">Cargando datos...</td></tr></tbody>
     </table></div>
@@ -108,13 +116,13 @@
     </div>
     <div class="excl-body">
       <table class="excl-table">
-        <thead><tr><th>Cliente</th><th id="excl-col2">Por qué está "a resolver"</th><th class="r">Filas</th><th class="r">Importe</th></tr></thead>
+        <thead><tr><th id="excl-col1">Cliente</th><th id="excl-col2">Por qué está "a resolver"</th><th class="r">Filas</th><th class="r">Importe</th></tr></thead>
         <tbody id="excl-tbody"></tbody>
       </table>
     </div>
   </div>
 </div>
 
-<script src="js/tfcarnes.js?v=20261002a"></script>
+<script src="js/tfcarnes.js?v=20261002b"></script>
 </body>
 </html>
