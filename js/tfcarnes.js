@@ -321,7 +321,10 @@ function clasificarClientes(datosA, datosB){
 function agregarAFecha(porFecha, fecha, cliente, importe){
   if (!porFecha[fecha]) porFecha[fecha] = { total: 0, porCliente: {} };
   porFecha[fecha].total += importe;
-  porFecha[fecha].porCliente[cliente] = (porFecha[fecha].porCliente[cliente] || 0) + importe;
+  if (!porFecha[fecha].porCliente[cliente]) porFecha[fecha].porCliente[cliente] = { importe: 0, filas: 0 };
+  const c = porFecha[fecha].porCliente[cliente];
+  c.importe += importe;
+  c.filas += 1;
 }
 
 // Buckets de días MUTUAMENTE EXCLUYENTES (cada comprobante cae en uno solo):
@@ -364,14 +367,25 @@ function buildProyeccion(datos, key, porCliente){
   // por separado — son comprobantes muy viejos, no aportan al seguimiento diario.
   const VENCIDO_AGRUPAR_DIAS = -30;
   const rows = [];
-  let agrupado = null; // { total, fechaMin, diasMin }
+  let agrupado = null; // { total, fechaMin, diasMin, porCliente }
   Object.keys(porFecha).sort().forEach(f => {
     const dias = calcularDias(f);
     if (dias < VENCIDO_AGRUPAR_DIAS) {
-      if (!agrupado) agrupado = { total: 0, fechaMin: f, diasMin: dias };
+      if (!agrupado) agrupado = { total: 0, fechaMin: f, diasMin: dias, porCliente: {} };
       agrupado.total += porFecha[f].total;
       if (f < agrupado.fechaMin) agrupado.fechaMin = f;
       if (dias < agrupado.diasMin) agrupado.diasMin = dias;
+      // Fusiona el detalle por cliente de esta fecha vieja en el acumulado
+      // del grupo ">30 días" — así la fila agrupada también puede abrir su
+      // propio detalle (antes quedaba vacío, sin desglose por cliente).
+      Object.entries(porFecha[f].porCliente).forEach(([cliente, v]) => {
+        if (!agrupado.porCliente[cliente]) agrupado.porCliente[cliente] = { importe: 0, filas: 0, diasMin: dias, diasMax: dias };
+        const c = agrupado.porCliente[cliente];
+        c.importe += v.importe;
+        c.filas += v.filas;
+        if (dias < c.diasMin) c.diasMin = dias;
+        if (dias > c.diasMax) c.diasMax = dias;
+      });
       return;
     }
     rows.push({
@@ -379,7 +393,7 @@ function buildProyeccion(datos, key, porCliente){
       importe: porFecha[f].total,
       dias,
       detalles: Object.entries(porFecha[f].porCliente)
-        .map(([cliente, importe]) => ({ cliente, importe }))
+        .map(([cliente, v]) => ({ cliente, importe: v.importe, filas: v.filas, razon: fmtDiasUno(dias) }))
         .sort((a, b) => b.importe - a.importe)
     });
   });
@@ -389,7 +403,9 @@ function buildProyeccion(datos, key, porCliente){
       importe: agrupado.total,
       dias: agrupado.diasMin,
       agrupado: true,
-      detalles: []
+      detalles: Object.entries(agrupado.porCliente)
+        .map(([cliente, v]) => ({ cliente, importe: v.importe, filas: v.filas, razon: fmtDiasRango(v.diasMin, v.diasMax) }))
+        .sort((a, b) => b.importe - a.importe)
     });
   }
 
@@ -523,27 +539,42 @@ function renderTabla(tag){
     if (c === col) th.classList.add(dir === 1 ? 'sorted-asc' : 'sorted-desc');
   });
 
+  ultimasFilasRender[tag] = rows;
+
   const tbody = document.getElementById(`tbody-${tag}`);
   if (!rows.length) { tbody.innerHTML = '<tr><td colspan="4" class="no-data">Sin cuentas a cobrar</td></tr>'; return; }
-  tbody.innerHTML = rows.map(r => {
+  tbody.innerHTML = rows.map((r, idx) => {
+    const empresas = r.detalles.map(x => `${x.cliente} (${fm(x.importe)})`).join(', ') || '—';
     if (r.agrupado) {
-      return `<tr class="overdue-row">
+      return `<tr class="overdue-row row-click" onclick="verFila('${tag}',${idx})">
         <td><span class="dlabel">Vencido hace más de 30 días</span></td>
         <td class="dsub">acumulado</td>
         <td>${fm(r.importe)}</td>
-        <td class="empresas-cell">—</td>
+        <td class="empresas-cell">${empresas}</td>
       </tr>`;
     }
     const rc = r.dias < 0 ? 'overdue-row' : r.dias <= 7 ? 'soon-row' : '';
     const diasLabel = r.dias < 0 ? `vencido ${Math.abs(r.dias)}d` : r.dias === 0 ? 'HOY' : `en ${r.dias}d`;
-    const empresas = r.detalles.map(x => `${x.cliente} (${fm(x.importe)})`).join(', ');
-    return `<tr class="${rc}">
+    return `<tr class="${rc} row-click" onclick="verFila('${tag}',${idx})">
       <td><span class="dlabel">${fmDate(r.fecha)}</span></td>
       <td class="dsub">${diasLabel}</td>
       <td>${fm(r.importe)}</td>
       <td class="empresas-cell">${empresas}</td>
     </tr>`;
   }).join('');
+}
+
+// Click en una fila de la tabla (Vencido/A vencer, por fecha) → abre el
+// mismo modal de detalle que ya usan los KPIs, con el desglose por cliente
+// de esa fila (r.detalles, armado en buildProyeccion()/agregarAFecha()).
+const ultimasFilasRender = { A: [], B: [] };
+function verFila(tag, idx){
+  const r = ultimasFilasRender[tag][idx];
+  if (!r) return;
+  const titulo = r.agrupado
+    ? `Vencido hace más de 30 días · Archivo ${tag}`
+    : `${fmDate(r.fecha)} · Archivo ${tag}`;
+  abrirModalDetalle(titulo, r.detalles || [], 'Sin detalle por cliente para esta fila', 'Vencimiento');
 }
 
 function renderPanel(tag, datos, key, porCliente){
